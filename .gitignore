@@ -1,0 +1,15 @@
+# Ignorar archivo de variables de entorno con contraseñas
+.env
+
+# Archivos de configuración de editores
+.vscode/
+.idea/
+
+# Logs y temporales
+*.log
+cookies.txt
+scratch/
+
+# Archivos de sistema operativo
+Thumbs.db
+.DS_Store
