@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Gestión de Flota Vehicular</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5.3 & Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Estilos personalizados (Tema Oscuro Profesional) -->
+    <link rel="stylesheet" href="/flota/frontend/assets/css/estilo.css">
+</head>
+<body class="bg-body-tertiary">
+
+<div class="d-flex align-items-center justify-content-center min-vh-100 p-3" style="background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);">
+    <div class="card border-secondary border-opacity-25 shadow-lg w-100" style="max-width: 440px;">
+        <div class="card-body p-4 p-md-5">
+            <div class="text-center mb-4">
+                <div class="brand-icon mx-auto rounded-3 d-flex align-items-center justify-content-center bg-primary text-white mb-3 shadow" style="width: 54px; height: 54px;">
+                    <i class="bi bi-truck fs-2"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-1">Gestión de Flota</h3>
+                <p class="text-secondary small">Sistema Centralizado de Administración Vehicular</p>
+            </div>
+
+            <div id="alerts-container"></div>
+
+            <form id="formLogin">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Correo Electrónico</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        <input type="email" class="form-control" id="email" name="email" value="admin@flota.com" required placeholder="correo@ejemplo.com" autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" class="form-control" id="password" name="password" value="admin123" required placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmit" class="btn btn-primary w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow">
+                    <i class="bi bi-box-arrow-in-right"></i> Ingresar al Sistema
+                </button>
+            </form>
+
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                <div class="small text-secondary fw-semibold mb-2 text-center">Credenciales de Acceso:</div>
+                <div class="d-flex flex-column gap-1 small bg-dark p-3 rounded border border-secondary border-opacity-25">
+                    <div class="d-flex justify-content-between">
+                        <span class="badge bg-danger-subtle text-danger">Administrador</span>
+                        <code class="text-light">admin@flota.com / admin123</code>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="badge bg-warning-subtle text-warning">Supervisor</span>
+                        <code class="text-light">supervisor@flota.com / admin123</code>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="badge bg-info-subtle text-info">Consulta</span>
+                        <code class="text-light">consulta@flota.com / admin123</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/flota/frontend/assets/js/app.js?v=20260927"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    // Si ya tiene sesión activa, redirigir al dashboard
+    const check = await App.api('/flota/backend/controllers/AuthController.php?accion=check');
+    if (check && check.success && check.data && check.data.authenticated) {
+        window.location.href = '/flota/frontend/index.html';
+        return;
+    }
+
+    App.checkFlashAlerts();
+
+    const form = document.getElementById('formLogin');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Ingresando...`;
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        const res = await App.api('/flota/backend/controllers/AuthController.php?accion=login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (res && res.success) {
+            App.flashAlert('success', `¡Bienvenido de nuevo, ${res.data.usuario.nombre}!`);
+            window.location.href = res.data.redirect || '/flota/frontend/index.html';
+        } else {
+            App.showAlert('danger', res.mensaje || 'Credenciales incorrectas o usuario inactivo.');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i class="bi bi-box-arrow-in-right"></i> Ingresar al Sistema`;
+        }
+    });
+});
+</script>
+</body>
+</html>

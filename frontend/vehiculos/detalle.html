@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Técnica del Vehículo - Gestión de Flota</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/flota/frontend/assets/css/estilo.css">
+</head>
+<body class="bg-body-tertiary">
+
+<div class="d-flex min-vh-100 layout-wrapper">
+    <div id="sidebar-container"></div>
+    <div class="d-flex flex-column flex-grow-1 main-content-wrapper">
+        <div id="navbar-container"></div>
+        <main class="container-fluid p-4 content-area">
+            <div id="alerts-container"></div>
+
+            <div class="d-flex flex-column gap-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <a href="/flota/frontend/vehiculos/index.html" class="text-secondary text-decoration-none small">
+                                <i class="bi bi-arrow-left"></i> Vehículos
+                            </a>
+                            <span class="text-secondary small">/</span>
+                            <span class="text-light small fw-bold" id="bread-placa">Cargando...</span>
+                        </div>
+                        <h2 class="fw-bold mb-0 d-flex align-items-center gap-3">
+                            <span id="header-placa">--</span>
+                            <span class="badge fs-6 px-3 py-1" id="header-estado-badge">--</span>
+                        </h2>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap requires-edit" id="header-acciones" style="display: none;">
+                        <a href="#" id="btn-nuevo-mantenimiento" class="btn btn-warning btn-sm d-flex align-items-center gap-1 shadow-sm">
+                            <i class="bi bi-wrench"></i> Registrar Mantenimiento
+                        </a>
+                        <a href="#" id="btn-asignar-llanta" class="btn btn-info btn-sm d-flex align-items-center gap-1 text-dark shadow-sm">
+                            <i class="bi bi-record-circle"></i> Asignar Llanta
+                        </a>
+                        <a href="#" id="btn-editar-vehiculo" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-lg-8">
+                        <div class="card h-100 p-4">
+                            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-info-circle me-2"></i>Especificaciones Generales</h5>
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4">
+                                    <span class="text-secondary small d-block">Sucursal</span>
+                                    <strong class="text-light" id="spec-sucursal">--</strong>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <span class="text-secondary small d-block">Marca y Modelo</span>
+                                    <strong class="text-light" id="spec-marca-modelo">--</strong>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <span class="text-secondary small d-block">Año / Tipo</span>
+                                    <strong class="text-light" id="spec-anio-tipo">--</strong>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <span class="text-secondary small d-block">Capacidad</span>
+                                    <strong class="text-light" id="spec-tonelaje">--</strong>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <span class="text-secondary small d-block">Kilometraje Actual</span>
+                                    <strong class="text-info fs-5" id="spec-km">--</strong>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <span class="text-secondary small d-block">Fecha de Adquisición</span>
+                                    <strong class="text-light" id="spec-fecha-adq">--</strong>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="text-secondary small d-block">Número de Motor</span>
+                                    <code class="text-light" id="spec-motor">--</code>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="text-secondary small d-block">Chasis / VIN</span>
+                                    <code class="text-light" id="spec-vin">--</code>
+                                </div>
+                                <div class="col-12" id="block-observaciones" style="display: none;">
+                                    <span class="text-secondary small d-block">Observaciones</span>
+                                    <p class="text-light small bg-dark p-2 rounded border border-secondary border-opacity-25 mb-0" id="spec-observaciones"></p>
+                                </div>
+
+                                <div class="col-12 border-top border-secondary border-opacity-25 pt-3 mt-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-secondary small fw-bold text-uppercase">
+                                            <i class="bi bi-file-earmark-check text-primary me-1"></i> Documentos Cargados a este Camión (<span id="count-docs-badge">0</span>)
+                                        </span>
+                                        <button type="button" class="btn btn-link btn-sm text-primary p-0 text-decoration-none small" id="btn-ir-tab-docs">
+                                            Administrar / Cargar Nuevo <i class="bi bi-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                    <div id="docs-preview-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-4">
+                        <div class="card h-100 p-4 d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="fw-bold text-success mb-3"><i class="bi bi-cash-coin me-2"></i>Inversión Acumulada</h5>
+                                <div class="display-6 fw-bold text-success mb-2" id="kpi-gasto-total">L. 0.00</div>
+                                <p class="text-secondary small">Total gastado en mantenimientos preventivos y correctivos completados en esta unidad.</p>
+                            </div>
+                            <div class="border-top border-secondary border-opacity-25 pt-3 mt-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-secondary small">Total Servicios Realizados:</span>
+                                    <strong class="text-light" id="kpi-total-servicios">0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-secondary small">Llantas Activas:</span>
+                                    <strong class="text-info" id="kpi-llantas-activas">0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-secondary small">Documentos Cargados:</span>
+                                    <strong class="text-warning" id="kpi-docs-cargados">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header border-bottom border-secondary border-opacity-25 p-0">
+                        <ul class="nav nav-tabs border-0 px-3" id="detalleTab" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active py-3 px-4 fw-semibold" id="mantenimientos-tab" data-bs-toggle="tab" data-bs-target="#mantenimientos" type="button">
+                                    <i class="bi bi-tools me-2 text-warning"></i> Historial de Mantenimientos (<span id="tab-count-mant">0</span>)
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-semibold text-secondary" id="llantas-tab" data-bs-toggle="tab" data-bs-target="#llantas" type="button">
+                                    <i class="bi bi-record-circle me-2 text-info"></i> Llantas Instaladas (<span id="tab-count-llantas">0</span>)
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-semibold text-secondary" id="documentos-tab" data-bs-toggle="tab" data-bs-target="#tab-documentos" type="button">
+                                    <i class="bi bi-file-earmark-check me-2 text-primary"></i> Documentación y Permisos (<span id="tab-count-docs">0</span>)
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="tab-content" id="detalleTabContent">
+                            <div class="tab-pane fade show active table-responsive" id="mantenimientos">
+                                <table class="table table-custom table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha Prog.</th>
+                                            <th>Tipo</th>
+                                            <th>Título y Taller</th>
+                                            <th>Km Servicio</th>
+                                            <th>Costo</th>
+                                            <th>Estado</th>
+                                            <th>Fecha Realizado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-mantenimientos">
+                                        <tr><td colspan="7" class="text-center text-secondary py-4">Cargando mantenimientos...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="tab-pane fade table-responsive" id="llantas">
+                                <table class="table table-custom table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Posición</th>
+                                            <th>Código</th>
+                                            <th>Marca / Medida</th>
+                                            <th>Instalación</th>
+                                            <th>Km Recorrido</th>
+                                            <th>Costo</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-llantas">
+                                        <tr><td colspan="7" class="text-center text-secondary py-4">Cargando llantas...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-documentos">
+                                <div class="p-4 border-bottom border-secondary border-opacity-25 bg-dark bg-opacity-25 requires-edit">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+                                        <div>
+                                            <h6 class="fw-bold text-light mb-1"><i class="bi bi-cloud-arrow-up text-primary me-2"></i>Cargar Nuevo Documento o Permiso</h6>
+                                            <p class="text-secondary small mb-0">Sube revisiones técnicas, permisos de explotación, permisos de sobredimensión, pólizas de seguro u otros documentos legales.</p>
+                                        </div>
+                                    </div>
+
+                                    <form id="formSubirDocumento" enctype="multipart/form-data">
+                                        <input type="hidden" name="vehiculo_id" id="doc-vehiculo-id">
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-12 col-md-3">
+                                                <label class="form-label small text-secondary">Tipo de Documento <span class="text-danger">*</span></label>
+                                                <select name="tipo_documento" class="form-select form-select-sm" required>
+                                                    <option value="">-- Seleccione tipo --</option>
+                                                    <option value="Revisión Técnica">Revisión Técnica</option>
+                                                    <option value="Permiso de Explotación">Permiso de Explotación</option>
+                                                    <option value="Permiso de Sobredimensión">Permiso de Sobredimensión</option>
+                                                    <option value="Póliza de Seguro">Póliza de Seguro</option>
+                                                    <option value="Tarjeta de Circulación">Tarjeta de Circulación</option>
+                                                    <option value="Otro">Otro Documento</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <label class="form-label small text-secondary">Archivo (PDF, JPG, PNG, WEBP) <span class="text-danger">*</span></label>
+                                                <input type="file" name="archivo" id="input-doc-archivo" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" required>
+                                            </div>
+                                            <div class="col-12 col-md-2">
+                                                <label class="form-label small text-secondary">Fecha Vencimiento</label>
+                                                <input type="date" name="fecha_vencimiento" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-12 col-md-2">
+                                                <label class="form-label small text-secondary">Observaciones</label>
+                                                <input type="text" name="observaciones" class="form-control form-control-sm" placeholder="Opcional...">
+                                            </div>
+                                            <div class="col-12 col-md-2">
+                                                <button type="submit" id="btnSubirDoc" class="btn btn-primary btn-sm w-100 fw-semibold">
+                                                    <i class="bi bi-upload me-1"></i> Subir Documento
+                                                </button>
+                                            </div>
+                                            <div class="col-12 mt-1">
+                                                <small class="text-secondary" style="font-size: 0.74rem;">
+                                                    <i class="bi bi-shield-check text-success me-1"></i>Formatos permitidos: <strong>PDF</strong> (máx. 10 MB), <strong>JPG, JPEG, PNG y WEBP</strong> (máx. 5 MB). Se bloquean archivos comprimidos y ejecutables.
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-custom table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tipo de Documento</th>
+                                                <th>Archivo</th>
+                                                <th>Vencimiento / Estado</th>
+                                                <th>Fecha de Carga</th>
+                                                <th>Observaciones</th>
+                                                <th class="text-end pe-4">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-documentos">
+                                            <tr><td colspan="6" class="text-center text-secondary py-4">Cargando documentos...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div id="footer-container"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/flota/frontend/assets/js/app.js?v=20260927"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const ok = await App.initLayout('vehiculos');
+    if (!ok) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const tabParam = urlParams.get('tab');
+
+    if (!id) {
+        window.location.href = '/flota/frontend/vehiculos/index.html';
+        return;
+    }
+
+    document.getElementById('doc-vehiculo-id').value = id;
+
+    if (tabParam === 'documentos') {
+        const tabEl = document.getElementById('documentos-tab');
+        if (tabEl) bootstrap.Tab.getOrCreateInstance(tabEl).show();
+    }
+
+    document.getElementById('btn-ir-tab-docs').addEventListener('click', () => {
+        bootstrap.Tab.getOrCreateInstance(document.getElementById('documentos-tab')).show();
+    });
+
+    async function cargarDetalle() {
+        const res = await App.api(`/flota/backend/controllers/VehiculoController.php?accion=obtener&id=${id}`);
+        if (!res || !res.success || !res.data) {
+            App.showAlert('danger', 'Vehículo no encontrado.');
+            setTimeout(() => window.location.href = '/flota/frontend/vehiculos/index.html', 1500);
+            return;
+        }
+
+        const d = res.data;
+        const v = d.vehiculo;
+        const mantenimientos = d.mantenimientos || [];
+        const llantas = d.llantas || [];
+        const documentos = d.documentos || [];
+        const puedeEditar = d.puede_editar;
+
+        document.getElementById('bread-placa').textContent = v.placa;
+        document.getElementById('header-placa').textContent = v.placa;
+        
+        let badgeClase = 'badge-activo';
+        if (v.estado === 'Taller') badgeClase = 'badge-taller';
+        if (v.estado === 'Inactivo') badgeClase = 'badge-inactivo';
+        const badgeEl = document.getElementById('header-estado-badge');
+        badgeEl.className = `badge ${badgeClase} fs-6 px-3 py-1`;
+        badgeEl.textContent = v.estado;
+
+        if (puedeEditar) {
+            document.getElementById('header-acciones').style.display = 'flex';
+            document.getElementById('btn-nuevo-mantenimiento').href = `/flota/frontend/mantenimientos/crear.html?vehiculo_id=${v.id}`;
+            document.getElementById('btn-asignar-llanta').href = `/flota/frontend/llantas/registrar.html?vehiculo_id=${v.id}`;
+            document.getElementById('btn-editar-vehiculo').href = `/flota/frontend/vehiculos/editar.html?id=${v.id}`;
+        }
+
+        document.getElementById('spec-sucursal').innerHTML = `<i class="bi bi-geo-alt text-danger me-1"></i>${App.escapeHtml(v.sucursal || 'Sin sucursal')}`;
+        document.getElementById('spec-marca-modelo').textContent = `${v.marca || ''} ${v.modelo || ''}`.trim() || 'N/D';
+        document.getElementById('spec-anio-tipo').textContent = `${v.anio || 'N/D'} (${v.tipo || 'Camión'})`;
+        document.getElementById('spec-tonelaje').textContent = `${Number(v.tonelaje || 0).toFixed(1)} Toneladas`;
+        document.getElementById('spec-km').textContent = `${Number(v.kilometraje_actual || 0).toLocaleString()} km`;
+        document.getElementById('spec-fecha-adq').textContent = App.formatDate(v.fecha_adquisicion);
+        document.getElementById('spec-motor').textContent = v.motor || 'No especificado';
+        document.getElementById('spec-vin').textContent = v.vin || 'No especificado';
+
+        if (v.observaciones) {
+            document.getElementById('block-observaciones').style.display = 'block';
+            document.getElementById('spec-observaciones').textContent = v.observaciones;
+        }
+
+        document.getElementById('count-docs-badge').textContent = documentos.length;
+        document.getElementById('kpi-docs-cargados').textContent = documentos.length;
+        document.getElementById('tab-count-docs').textContent = documentos.length;
+
+        const previewContainer = document.getElementById('docs-preview-container');
+        if (documentos.length === 0) {
+            previewContainer.innerHTML = `
+                <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
+                    <span class="text-secondary small"><i class="bi bi-info-circle me-1"></i> No hay documentos cargados para este camión (Revisión técnica, permisos, etc.).</span>
+                    ${puedeEditar ? `
+                    <button type="button" class="btn btn-outline-primary btn-sm py-1 px-3 text-nowrap" onclick="bootstrap.Tab.getOrCreateInstance(document.getElementById('documentos-tab')).show();">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Cargar Documentación
+                    </button>
+                    ` : ''}
+                </div>
+            `;
+        } else {
+            previewContainer.innerHTML = `<div class="row g-2">` + documentos.map(doc => {
+                const ext = (doc.extension || (doc.nombre_original ? doc.nombre_original.split('.').pop() : '')).toLowerCase();
+                let icono = 'bi-file-earmark-text text-secondary';
+                if (ext === 'pdf') icono = 'bi-file-earmark-pdf text-danger';
+                else if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) icono = 'bi-file-earmark-image text-info';
+
+                const venc = doc.estado_vencimiento || { clase: 'bg-secondary-subtle text-secondary', texto: 'Sin vencimiento', icono: 'bi-dash-circle' };
+                const ruta = `/flota/${doc.ruta_archivo}`;
+                const tamanoStr = doc.tamano_bytes ? App.formatBytes(doc.tamano_bytes) : '';
+
+                return `
+                <div class="col-12 col-sm-6">
+                    <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden me-1">
+                            <i class="bi ${icono} fs-4 flex-shrink-0"></i>
+                            <div class="overflow-hidden">
+                                <div class="text-light small fw-bold text-truncate" title="${App.escapeHtml(doc.tipo_documento)}">
+                                    ${App.escapeHtml(doc.tipo_documento)}
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-wrap">
+                                    <span class="badge ${venc.clase}" style="font-size: 0.7rem;">
+                                        <i class="bi ${venc.icono} me-1"></i>${App.escapeHtml(venc.texto)}
+                                    </span>
+                                    ${tamanoStr ? `<small class="text-secondary" style="font-size: 0.68rem;">(${tamanoStr})</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1 flex-shrink-0">
+                            <a href="${ruta}" target="_blank" class="btn btn-sm btn-outline-info py-0 px-2" title="Visualizar documento">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="${ruta}" download="${App.escapeHtml(doc.nombre_original)}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Descargar">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('') + `</div>`;
+        }
+
+        document.getElementById('kpi-gasto-total').textContent = App.formatMoney(d.gasto_total);
+        document.getElementById('kpi-total-servicios').textContent = mantenimientos.length;
+        document.getElementById('kpi-llantas-activas').textContent = llantas.length;
+
+        document.getElementById('tab-count-mant').textContent = mantenimientos.length;
+        const tbodyMant = document.getElementById('tabla-mantenimientos');
+        if (mantenimientos.length === 0) {
+            tbodyMant.innerHTML = `<tr><td colspan="7" class="text-center text-secondary py-4">No hay mantenimientos registrados para este vehículo.</td></tr>`;
+        } else {
+            tbodyMant.innerHTML = mantenimientos.map(m => `
+                <tr>
+                    <td><i class="bi bi-calendar-event me-1 text-secondary"></i>${App.formatDate(m.fecha_programada)}</td>
+                    <td>
+                        <span class="badge ${m.tipo === 'Preventivo' ? 'bg-info-subtle text-info' : 'bg-danger-subtle text-danger'}">
+                            ${App.escapeHtml(m.tipo)}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-light">${App.escapeHtml(m.titulo)}</div>
+                        <small class="text-secondary">${App.escapeHtml(m.proveedor || 'Taller no especificado')}</small>
+                        ${m.archivo_ruta ? `
+                        <div class="mt-1">
+                            <a href="/flota/${m.archivo_ruta}" target="_blank" class="badge bg-primary-subtle text-primary text-decoration-none">
+                                <i class="bi bi-paperclip me-1"></i>Ver adjunto (${App.escapeHtml(m.archivo_nombre_original || 'Soporte')})
+                            </a>
+                        </div>
+                        ` : ''}
+                    </td>
+                    <td>${m.kilometraje_servicio ? Number(m.kilometraje_servicio).toLocaleString() + ' km' : 'N/D'}</td>
+                    <td class="fw-bold text-success">${App.formatMoney(m.costo)}</td>
+                    <td>
+                        <span class="badge ${m.estado === 'Completado' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'}">
+                            ${App.escapeHtml(m.estado)}
+                        </span>
+                    </td>
+                    <td>${m.fecha_realizada ? App.formatDate(m.fecha_realizada) : '<span class="text-secondary">Pendiente</span>'}</td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('tab-count-llantas').textContent = llantas.length;
+        const tbodyLlantas = document.getElementById('tabla-llantas');
+        if (llantas.length === 0) {
+            tbodyLlantas.innerHTML = `<tr><td colspan="7" class="text-center text-secondary py-4">No hay llantas registradas para este vehículo.</td></tr>`;
+        } else {
+            tbodyLlantas.innerHTML = llantas.map(ll => `
+                <tr>
+                    <td class="fw-bold text-info"><i class="bi bi-geo-alt me-1"></i>${App.escapeHtml(ll.posicion)}</td>
+                    <td><code class="text-light fw-bold">${App.escapeHtml(ll.codigo)}</code></td>
+                    <td>
+                        <div class="fw-semibold text-light">${App.escapeHtml(ll.marca)}</div>
+                        <small class="text-secondary">${App.escapeHtml(ll.medida)} (${App.escapeHtml(ll.tipo_llanta)})</small>
+                    </td>
+                    <td>
+                        <div>${App.formatDate(ll.fecha_instalacion)}</div>
+                        <small class="text-secondary">${Number(ll.km_instalacion || 0).toLocaleString()} km</small>
+                    </td>
+                    <td><span class="fw-bold text-warning">${Number(ll.km_recorridos || 0).toLocaleString()} km</span></td>
+                    <td class="text-light">${App.formatMoney(ll.costo)}</td>
+                    <td>
+                        <span class="badge ${ll.estado === 'Activa' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'}">
+                            ${App.escapeHtml(ll.estado)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        const tbodyDocs = document.getElementById('tabla-documentos');
+        if (documentos.length === 0) {
+            tbodyDocs.innerHTML = `<tr><td colspan="6" class="text-center text-secondary py-4">No hay documentos registrados para este vehículo.</td></tr>`;
+        } else {
+            tbodyDocs.innerHTML = documentos.map(d => {
+                const ext = (d.extension || (d.nombre_original ? d.nombre_original.split('.').pop() : '')).toLowerCase();
+                let icono = 'bi-file-earmark-text text-secondary';
+                if (ext === 'pdf') icono = 'bi-file-earmark-pdf text-danger';
+                else if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) icono = 'bi-file-earmark-image text-info';
+
+                const venc = d.estado_vencimiento || { clase: 'bg-secondary-subtle text-secondary', texto: 'Sin vencimiento', icono: 'bi-dash-circle' };
+                const ruta = `/flota/${d.ruta_archivo}`;
+                const tamanoStr = d.tamano_bytes ? App.formatBytes(d.tamano_bytes) : '';
+
+                return `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi ${icono} fs-5"></i>
+                            <strong class="text-light">${App.escapeHtml(d.tipo_documento)}</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="text-light small">${App.escapeHtml(d.nombre_original)}</div>
+                        <small class="text-secondary" style="font-size: 0.72rem;">
+                            ${ext ? ext.toUpperCase() : ''}${tamanoStr ? ` • ${tamanoStr}` : ''}
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge ${venc.clase} px-2 py-1">
+                            <i class="bi ${venc.icono} me-1"></i>${App.escapeHtml(venc.texto)}
+                        </span>
+                        ${d.fecha_vencimiento ? `<small class="text-secondary d-block mt-1">Vence: ${App.formatDate(d.fecha_vencimiento)}</small>` : ''}
+                    </td>
+                    <td><span class="text-secondary small"><i class="bi bi-calendar3 me-1"></i>${App.formatDate(d.fecha_subida)}</span></td>
+                    <td><span class="text-secondary small">${App.escapeHtml(d.observaciones || '—')}</span></td>
+                    <td class="text-end pe-4">
+                        <div class="btn-group">
+                            <a href="${ruta}" target="_blank" class="btn btn-sm btn-outline-info" title="Ver / Abrir documento">
+                                <i class="bi bi-eye me-1"></i> Ver
+                            </a>
+                            <a href="${ruta}" download="${App.escapeHtml(d.nombre_original)}" class="btn btn-sm btn-outline-secondary" title="Descargar">
+                                <i class="bi bi-download"></i>
+                            </a>
+                            ${puedeEditar ? `
+                            <button class="btn btn-sm btn-outline-danger btn-eliminar-doc" data-id="${d.id}" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+
+            tbodyDocs.querySelectorAll('.btn-eliminar-doc').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const docId = btn.getAttribute('data-id');
+                    if (confirm('¿Estás seguro de que deseas eliminar este documento? Esta acción eliminará el archivo del servidor.')) {
+                        const r = await App.api(`/flota/backend/controllers/DocumentoController.php?accion=eliminar&id=${docId}`);
+                        if (r && r.success) {
+                            App.showAlert('success', 'Documento eliminado exitosamente.');
+                            cargarDetalle();
+                        } else {
+                            App.showAlert('danger', r.mensaje || 'Error al eliminar documento.');
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    await cargarDetalle();
+
+    const formDoc = document.getElementById('formSubirDocumento');
+    const btnSubirDoc = document.getElementById('btnSubirDoc');
+    const inputDocArchivo = document.getElementById('input-doc-archivo');
+    App.vincularValidacionArchivo(inputDocArchivo);
+
+    if (formDoc) {
+        formDoc.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const file = inputDocArchivo && inputDocArchivo.files ? inputDocArchivo.files[0] : null;
+            if (!file) {
+                App.showAlert('danger', 'Por favor selecciona un archivo (PDF, JPG, JPEG, PNG o WEBP) para subir.');
+                return;
+            }
+            const valArchivo = App.validarArchivo(file);
+            if (!valArchivo.valido) {
+                App.showAlert('danger', valArchivo.mensaje);
+                inputDocArchivo.classList.add('is-invalid');
+                return;
+            }
+
+            btnSubirDoc.disabled = true;
+            btnSubirDoc.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Subiendo...`;
+
+            const formData = new FormData(formDoc);
+            formData.append('accion', 'subir');
+
+            try {
+                const res = await fetch('/flota/backend/controllers/DocumentoController.php?accion=subir', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (data && data.success) {
+                    App.showAlert('success', data.mensaje || 'Documento cargado exitosamente.');
+                    formDoc.reset();
+                    inputDocArchivo.classList.remove('is-valid', 'is-invalid');
+                    document.getElementById('doc-vehiculo-id').value = id;
+                    cargarDetalle();
+                } else {
+                    App.showAlert('danger', data.mensaje || 'Error al subir documento.');
+                }
+            } catch (err) {
+                console.error(err);
+                App.showAlert('danger', 'Error de comunicación al subir documento.');
+            } finally {
+                btnSubirDoc.disabled = false;
+                btnSubirDoc.innerHTML = `<i class="bi bi-upload me-1"></i> Subir Documento`;
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>

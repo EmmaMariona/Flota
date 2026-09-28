@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden de Mantenimiento - Imprimir</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body { background-color: #f8fafc; color: #0f172a; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; }
+        .document-wrapper { max-width: 850px; margin: 20px auto; background: #ffffff; padding: 35px 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+        .header-title { color: #1e293b; font-weight: 800; letter-spacing: -0.5px; }
+        .section-header { background-color: #f1f5f9; padding: 6px 12px; font-weight: 700; font-size: 12px; text-transform: uppercase; color: #334155; border-left: 4px solid #3b82f6; margin-bottom: 12px; }
+        .table-data th { background-color: #f8fafc; color: #475569; font-weight: 600; font-size: 12px; }
+        .signatures { margin-top: 50px; }
+        .signature-line { border-top: 1px solid #94a3b8; width: 80%; margin: 0 auto 5px auto; }
+        @media print {
+            body { background: #fff !important; }
+            .document-wrapper { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-3 no-print">
+    <div class="d-flex justify-content-between align-items-center max-w-850 mx-auto" style="max-width: 850px;">
+        <a href="/flota/frontend/mantenimientos/index.html" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Volver a Mantenimientos
+        </a>
+        <button onclick="window.print()" class="btn btn-primary btn-sm px-4 fw-semibold shadow-sm">
+            <i class="bi bi-printer me-1"></i> Imprimir / Guardar como PDF
+        </button>
+    </div>
+</div>
+
+<div class="document-wrapper">
+    <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi bi-truck fs-3 text-primary"></i>
+                <h3 class="header-title mb-0">SISTEMA DE GESTIÓN DE FLOTA VEHICULAR</h3>
+            </div>
+            <div class="text-secondary small">ORDEN DE SERVICIO Y CONSTANCIA DE MANTENIMIENTO</div>
+        </div>
+        <div class="text-end">
+            <div class="badge bg-primary fs-6 px-3 py-2 mb-1">ORDEN #<span id="doc-id">--</span></div>
+            <div class="small text-secondary" id="doc-fecha-emision">Emisión: --</div>
+        </div>
+    </div>
+
+    <div class="section-header">1. Información del Vehículo</div>
+    <table class="table table-bordered table-sm table-data mb-4">
+        <tbody>
+            <tr>
+                <th width="20%">Placa:</th>
+                <td width="30%"><strong class="fs-6 text-primary" id="doc-placa">--</strong></td>
+                <th width="20%">Sucursal:</th>
+                <td width="30%" id="doc-sucursal">--</td>
+            </tr>
+            <tr>
+                <th>Marca y Modelo:</th>
+                <td id="doc-marca-modelo">--</td>
+                <th>Año / Tipo:</th>
+                <td id="doc-anio-tipo">--</td>
+            </tr>
+            <tr>
+                <th>Número de Motor:</th>
+                <td id="doc-motor">--</td>
+                <th>Chasis / VIN:</th>
+                <td id="doc-vin">--</td>
+            </tr>
+            <tr>
+                <th>Km del Vehículo:</th>
+                <td id="doc-km-vehiculo">--</td>
+                <th>Capacidad:</th>
+                <td id="doc-tonelaje">--</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-header">2. Datos de la Orden de Mantenimiento</div>
+    <table class="table table-bordered table-sm table-data mb-4">
+        <tbody>
+            <tr>
+                <th width="20%">Título del Trabajo:</th>
+                <td colspan="3"><strong class="fs-6" id="doc-titulo">--</strong></td>
+            </tr>
+            <tr>
+                <th>Tipo de Servicio:</th>
+                <td><span class="badge bg-secondary" id="doc-tipo">--</span></td>
+                <th>Estado del Servicio:</th>
+                <td><span class="badge bg-success" id="doc-estado">--</span></td>
+            </tr>
+            <tr>
+                <th>Taller / Proveedor:</th>
+                <td id="doc-proveedor">--</td>
+                <th>Km al Servicio:</th>
+                <td id="doc-km-servicio">--</td>
+            </tr>
+            <tr>
+                <th>Fecha Programada:</th>
+                <td id="doc-fecha-prog">--</td>
+                <th>Fecha Realizado:</th>
+                <td id="doc-fecha-real">--</td>
+            </tr>
+            <tr>
+                <th>Descripción y Trabajos:</th>
+                <td colspan="3" id="doc-desc" style="white-space: pre-wrap;">--</td>
+            </tr>
+            <tr>
+                <th>Observaciones / Garantía:</th>
+                <td colspan="3" id="doc-obs">--</td>
+            </tr>
+            <tr id="row-adjunto" style="display: none;">
+                <th>Archivo Adjunto:</th>
+                <td colspan="3" id="doc-adjunto">--</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-header">3. Liquidación Económica</div>
+    <div class="p-3 bg-light rounded border mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <span class="text-secondary small d-block">COSTO TOTAL DEL SERVICIO (REPUESTOS Y MANO DE OBRA)</span>
+            <small class="text-muted">Moneda Oficial: Lempiras Hondureños (HNL)</small>
+        </div>
+        <div class="fs-3 fw-bold text-success" id="doc-costo">L. 0.00</div>
+    </div>
+
+    <div class="row signatures text-center">
+        <div class="col-4">
+            <div class="signature-line"></div>
+            <div class="fw-bold">Firma del Taller / Proveedor</div>
+            <small class="text-secondary">Sello y Firma</small>
+        </div>
+        <div class="col-4">
+            <div class="signature-line"></div>
+            <div class="fw-bold">Supervisor de Flota</div>
+            <small class="text-secondary">Revisión y Aprobación</small>
+        </div>
+        <div class="col-4">
+            <div class="signature-line"></div>
+            <div class="fw-bold">Conductor / Receptor</div>
+            <small class="text-secondary">Conformidad de Entrega</small>
+        </div>
+    </div>
+</div>
+
+<script src="/flota/frontend/assets/js/app.js?v=20260927"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) return;
+
+    const res = await App.api(`/flota/backend/controllers/MantenimientoController.php?accion=obtener&id=${id}`);
+    if (res && res.success && res.data) {
+        const m = res.data.mantenimiento;
+        const v = res.data.vehiculo || {};
+
+        document.getElementById('doc-id').textContent = m.id;
+        document.getElementById('doc-fecha-emision').textContent = 'Emisión: ' + new Date().toLocaleDateString('es-HN');
+        document.getElementById('doc-placa').textContent = m.placa;
+        document.getElementById('doc-sucursal').textContent = m.sucursal || 'Sin sucursal';
+        document.getElementById('doc-marca-modelo').textContent = `${v.marca || ''} ${v.modelo || ''}`.trim() || 'N/D';
+        document.getElementById('doc-anio-tipo').textContent = `${v.anio || 'N/D'} (${v.tipo || 'Camión'})`;
+        document.getElementById('doc-motor').textContent = v.motor || 'No especificado';
+        document.getElementById('doc-vin').textContent = v.vin || 'No especificado';
+        document.getElementById('doc-km-vehiculo').textContent = Number(v.kilometraje_actual || 0).toLocaleString() + ' km';
+        document.getElementById('doc-tonelaje').textContent = Number(v.tonelaje || 0).toFixed(1) + ' Ton';
+
+        document.getElementById('doc-titulo').textContent = m.titulo;
+        document.getElementById('doc-tipo').textContent = m.tipo;
+        document.getElementById('doc-estado').textContent = m.estado;
+        document.getElementById('doc-proveedor').textContent = m.proveedor || 'Taller no especificado';
+        document.getElementById('doc-km-servicio').textContent = m.kilometraje_servicio ? Number(m.kilometraje_servicio).toLocaleString() + ' km' : 'N/D';
+        document.getElementById('doc-fecha-prog').textContent = App.formatDate(m.fecha_programada);
+        document.getElementById('doc-fecha-real').textContent = m.fecha_realizada ? App.formatDate(m.fecha_realizada) : 'Pendiente';
+        document.getElementById('doc-desc').textContent = m.descripcion || 'Sin descripción adicional.';
+        document.getElementById('doc-obs').textContent = m.observaciones || 'Sin observaciones.';
+        document.getElementById('doc-costo').textContent = App.formatMoney(m.costo);
+
+        if (m.archivo_ruta) {
+            const tamanoStr = m.archivo_tamano ? ` (${App.formatBytes(m.archivo_tamano)})` : '';
+            document.getElementById('row-adjunto').style.display = '';
+            document.getElementById('doc-adjunto').innerHTML = `
+                <a href="/flota/${m.archivo_ruta}" target="_blank" class="text-primary fw-semibold text-decoration-none">
+                    <i class="bi bi-paperclip me-1"></i>${App.escapeHtml(m.archivo_nombre_original || m.archivo_nombre)}
+                </a>
+                <span class="text-secondary small">${tamanoStr}</span>
+            `;
+        }
+    }
+});
+</script>
+</body>
+</html>

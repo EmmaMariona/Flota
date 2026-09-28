@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestión de Flota Vehicular</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5.3 & Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Chart.js para estadísticas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Estilos personalizados (Tema Oscuro Profesional) -->
+    <link rel="stylesheet" href="/flota/frontend/assets/css/estilo.css">
+</head>
+<body class="bg-body-tertiary">
+
+<div class="d-flex min-vh-100 layout-wrapper">
+    <div id="sidebar-container"></div>
+    <div class="d-flex flex-column flex-grow-1 main-content-wrapper">
+        <div id="navbar-container"></div>
+        <main class="container-fluid p-4 content-area">
+            <div id="alerts-container"></div>
+
+            <div class="d-flex flex-column gap-4">
+                <!-- Encabezado y Acciones Rápidas -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <h2 class="fw-bold mb-1">Panel de Control de Flota</h2>
+                        <p class="text-secondary small mb-0">Resumen operativo, estado de unidades e indicadores de mantenimiento en tiempo real.</p>
+                    </div>
+                    <div id="quick-actions" class="d-flex gap-2 flex-wrap requires-edit" style="display: none;">
+                        <a href="/flota/frontend/vehiculos/crear.html?v=20260927" class="btn btn-primary d-flex align-items-center gap-2 btn-sm px-3 py-2 shadow-sm">
+                            <i class="bi bi-plus-circle"></i> Nuevo Vehículo
+                        </a>
+                        <a href="/flota/frontend/mantenimientos/crear.html" class="btn btn-outline-light d-flex align-items-center gap-2 btn-sm px-3 py-2 shadow-sm">
+                            <i class="bi bi-tools"></i> Programar Servicio
+                        </a>
+                        <a href="/flota/frontend/llantas/registrar.html" class="btn btn-outline-light d-flex align-items-center gap-2 btn-sm px-3 py-2 shadow-sm">
+                            <i class="bi bi-record-circle"></i> Registrar Llanta
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tarjetas de Estadísticas (KPIs) -->
+                <div class="row g-3">
+                    <!-- Total Vehículos -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card stat-card h-100 p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Flota Total</span>
+                                    <h3 class="fw-bold my-1" id="kpi-total-vehiculos">--</h3>
+                                </div>
+                                <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center small mt-auto pt-2 border-top border-secondary border-opacity-25" id="kpi-estado-vehiculos">
+                                <span class="badge bg-success-subtle text-success">-- Activos</span>
+                                <span class="badge bg-warning-subtle text-warning">-- Taller</span>
+                                <span class="badge bg-danger-subtle text-danger">-- Inactivos</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mantenimientos Pendientes -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card stat-card h-100 p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Mantenimientos Pendientes</span>
+                                    <h3 class="fw-bold my-1 text-warning" id="kpi-mantenimientos-pendientes">--</h3>
+                                </div>
+                                <div class="stat-icon-wrapper bg-warning-subtle text-warning">
+                                    <i class="bi bi-wrench-adjustable"></i>
+                                </div>
+                            </div>
+                            <div class="small text-secondary mt-auto pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between">
+                                <span>Completados:</span>
+                                <strong class="text-light" id="kpi-mantenimientos-completados">-- servicios</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gastos en Mantenimiento -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card stat-card h-100 p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Costo Incurrido (Mes)</span>
+                                    <h3 class="fw-bold my-1 text-success" id="kpi-costo-mes">--</h3>
+                                </div>
+                                <div class="stat-icon-wrapper bg-success-subtle text-success">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+                            </div>
+                            <div class="small text-secondary mt-auto pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between">
+                                <span>Histórico Total:</span>
+                                <strong class="text-light" id="kpi-costo-total">--</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Llantas en Monitoreo -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="card stat-card h-100 p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Llantas en Alerta</span>
+                                    <h3 class="fw-bold my-1 text-info" id="kpi-llantas-alerta">--</h3>
+                                </div>
+                                <div class="stat-icon-wrapper bg-info-subtle text-info">
+                                    <i class="bi bi-record-circle"></i>
+                                </div>
+                            </div>
+                            <div class="small text-secondary mt-auto pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between">
+                                <span>Llantas Activas:</span>
+                                <strong class="text-light" id="kpi-llantas-activas">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos Principales -->
+                <div class="row g-4">
+                    <!-- Gráfico 1: Inversión Mensual -->
+                    <div class="col-12 col-lg-8">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-bar-chart-fill text-primary"></i>
+                                    Inversión Mensual en Mantenimiento (Lps)
+                                </span>
+                                <a href="/flota/frontend/reportes/index.html" class="btn btn-sm btn-outline-secondary border-0 text-primary small">Ver detalles</a>
+                            </div>
+                            <div class="card-body">
+                                <div style="height: 280px;">
+                                    <canvas id="chartCostosMensuales"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico 2: Estado de la Flota -->
+                    <div class="col-12 col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-pie-chart-fill text-warning"></i>
+                                    Estado Operativo de la Flota
+                                </span>
+                                <a href="/flota/frontend/vehiculos/index.html" class="btn btn-sm btn-outline-secondary border-0 text-primary small">Ver lista</a>
+                            </div>
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                <div style="width: 100%; height: 250px;">
+                                    <canvas id="chartEstadoFlota"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próximos Mantenimientos y Distribución por Sucursal -->
+                <div class="row g-4">
+                    <!-- Próximos Servicios -->
+                    <div class="col-12 col-lg-7">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar-check text-info"></i>
+                                    Próximos Servicios Programados
+                                </span>
+                                <a href="/flota/frontend/mantenimientos/index.html" class="btn btn-sm btn-outline-secondary border-0 text-primary small">Ver todos</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-custom table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Vehículo</th>
+                                            <th>Servicio / Taller</th>
+                                            <th>Costo Est.</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-proximos-mantenimientos">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-secondary py-4">Cargando próximos servicios...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Distribución por Sucursal -->
+                    <div class="col-12 col-lg-5">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-geo-alt-fill text-success"></i>
+                                    Vehículos por Sucursal
+                                </span>
+                                <a href="/flota/frontend/vehiculos/index.html" class="btn btn-sm btn-outline-secondary border-0 text-primary small">Ver flota</a>
+                            </div>
+                            <div class="card-body">
+                                <div style="height: 240px;">
+                                    <canvas id="chartSucursales"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div id="footer-container"></div>
+    </div>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/flota/frontend/assets/js/app.js?v=20260927"></script>
+<script src="/flota/frontend/assets/js/dashboard-charts.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const ok = await App.initLayout('dashboard');
+    if (!ok) return;
+
+    // Cargar métricas del Dashboard
+    const res = await App.api('/flota/backend/controllers/DashboardController.php?accion=metricas');
+    if (res && res.success && res.data) {
+        const d = res.data;
+        const m = d.metricas;
+
+        // Mostrar botones de acción rápida si puede editar
+        if (d.puede_editar) {
+            const qa = document.getElementById('quick-actions');
+            if (qa) qa.style.display = 'flex';
+        }
+
+        // 1. Tarjetas KPI
+        document.getElementById('kpi-total-vehiculos').textContent = Number(m.vehiculos_total).toLocaleString();
+        document.getElementById('kpi-estado-vehiculos').innerHTML = `
+            <span class="badge bg-success-subtle text-success">${m.vehiculos_activos} Activos</span>
+            <span class="badge bg-warning-subtle text-warning">${m.vehiculos_taller} Taller</span>
+            <span class="badge bg-danger-subtle text-danger">${m.vehiculos_inactivos} Inactivos</span>
+        `;
+        document.getElementById('kpi-mantenimientos-pendientes').textContent = Number(m.mantenimientos_pendientes).toLocaleString();
+        document.getElementById('kpi-mantenimientos-completados').textContent = `${m.mantenimientos_completados} servicios`;
+        document.getElementById('kpi-costo-mes').textContent = App.formatMoney(m.costo_mes);
+        document.getElementById('kpi-costo-total').textContent = App.formatMoney(m.costo_total);
+        document.getElementById('kpi-llantas-alerta').textContent = (d.llantas_alerta ? d.llantas_alerta.length : 0).toString();
+        document.getElementById('kpi-llantas-activas').textContent = Number(m.llantas_activas).toLocaleString();
+
+        // 2. Tabla Próximos Mantenimientos
+        const tbody = document.getElementById('tabla-proximos-mantenimientos');
+        if (d.proximos_mantenimientos && d.proximos_mantenimientos.length > 0) {
+            tbody.innerHTML = d.proximos_mantenimientos.map(pm => `
+                <tr>
+                    <td>
+                        <span class="text-secondary small d-block"><i class="bi bi-calendar-event me-1"></i>${App.formatDate(pm.fecha_programada)}</span>
+                    </td>
+                    <td>
+                        <span class="fw-bold text-light">${App.escapeHtml(pm.placa)}</span>
+                        <small class="text-secondary d-block">${App.escapeHtml(pm.sucursal || 'Sin sucursal')}</small>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-light">${App.escapeHtml(pm.titulo)}</div>
+                        <small class="text-secondary">${App.escapeHtml(pm.proveedor || 'Taller no especificado')}</small>
+                    </td>
+                    <td class="fw-bold text-success">${App.formatMoney(pm.costo)}</td>
+                    <td>
+                        ${d.puede_editar ? `
+                        <button class="btn btn-sm btn-outline-success py-0 px-2 btn-completar" data-id="${pm.id}">
+                            <i class="bi bi-check2"></i> Listo
+                        </button>
+                        ` : '<span class="badge bg-secondary-subtle text-secondary">Pendiente</span>'}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Asignar listeners a botones Listo
+            tbody.querySelectorAll('.btn-completar').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    if (confirm('¿Deseas marcar este servicio como Completado?')) {
+                        const r = await App.api(`/flota/backend/controllers/MantenimientoController.php?accion=completar&id=${id}`);
+                        if (r && r.success) {
+                            App.showAlert('success', 'Mantenimiento marcado como Completado.');
+                            location.reload();
+                        } else {
+                            App.showAlert('danger', r.mensaje || 'Error al completar.');
+                        }
+                    }
+                });
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-secondary py-4">No hay servicios programados pendientes para los próximos días.</td></tr>`;
+        }
+
+        // 3. Renderizar Gráficos con Chart.js
+        window.renderDashboardCharts({
+            costosLabels: d.costos_mensuales ? d.costos_mensuales.labels : [],
+            costosValues: d.costos_mensuales ? d.costos_mensuales.data : [],
+            flotaActivos: parseInt(m.vehiculos_activos) || 0,
+            flotaTaller: parseInt(m.vehiculos_taller) || 0,
+            flotaInactivos: parseInt(m.vehiculos_inactivos) || 0,
+            sucursalesLabels: d.flota_sucursal ? d.flota_sucursal.labels : [],
+            sucursalesValues: d.flota_sucursal ? d.flota_sucursal.data : []
+        });
+    }
+});
+</script>
+</body>
+</html>

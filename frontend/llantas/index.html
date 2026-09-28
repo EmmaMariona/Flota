@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Llantas - Gestión de Flota</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/flota/frontend/assets/css/estilo.css">
+</head>
+<body class="bg-body-tertiary">
+
+<div class="d-flex min-vh-100 layout-wrapper">
+    <div id="sidebar-container"></div>
+    <div class="d-flex flex-column flex-grow-1 main-content-wrapper">
+        <div id="navbar-container"></div>
+        <main class="container-fluid p-4 content-area">
+            <div id="alerts-container"></div>
+
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <h2 class="fw-bold mb-1">Control de Llantas de Flota</h2>
+                        <p class="text-secondary small mb-0">Seguimiento por posición, kilometraje recorrido, rotaciones y reemplazos de neumáticos.</p>
+                    </div>
+                    <div class="requires-edit" style="display: none;">
+                        <a href="/flota/frontend/llantas/registrar.html" class="btn btn-info d-flex align-items-center gap-2 shadow-sm fw-semibold text-dark">
+                            <i class="bi bi-plus-circle"></i> Registrar / Asignar Llanta
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <div class="card p-3 border-secondary border-opacity-25">
+                            <span class="text-secondary small text-uppercase fw-semibold">Llantas en Monitoreo</span>
+                            <h4 class="fw-bold text-light my-1" id="kpi-total-llantas">0 neumáticos</h4>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card p-3 border-secondary border-opacity-25">
+                            <span class="text-secondary small text-uppercase fw-semibold">Próximas a Reemplazo (>40,000 km)</span>
+                            <h4 class="fw-bold text-warning my-1" id="kpi-alerta-desgaste">0 alertas</h4>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="card p-3 border-secondary border-opacity-25">
+                            <span class="text-secondary small text-uppercase fw-semibold">Inversión en Neumáticos Activos</span>
+                            <h4 class="fw-bold text-success my-1" id="kpi-costo-llantas">L. 0.00</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-3 shadow-sm">
+                    <form id="formFiltros" class="row g-2 align-items-end">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small text-secondary">Vehículo / Placa</label>
+                            <select id="filtro-vehiculo" class="form-select form-select-sm">
+                                <option value="">Todos los vehículos</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-secondary">Estado del Neumático</label>
+                            <select id="filtro-estado" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <option value="Activa" selected>Activas (Instaladas)</option>
+                                <option value="Por cambiar">Por cambiar (Desgaste)</option>
+                                <option value="Desechada">Desechadas</option>
+                                <option value="En reencauche">En reencauche</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-secondary">Búsqueda rápida</label>
+                            <input type="text" id="filtro-buscar" class="form-control form-control-sm" placeholder="Código, marca, medida...">
+                        </div>
+                        <div class="col-12 col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold">
+                                <i class="bi bi-filter"></i> Filtrar
+                            </button>
+                            <button type="button" id="btnLimpiar" class="btn btn-outline-secondary btn-sm" title="Limpiar">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center py-3">
+                        <span class="fw-semibold text-light d-flex align-items-center gap-2">
+                            <i class="bi bi-record-circle text-info"></i> Neumáticos Registrados
+                        </span>
+                        <span class="badge bg-secondary-subtle text-secondary" id="total-registros">0 llantas</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Posición</th>
+                                    <th>Código</th>
+                                    <th>Vehículo</th>
+                                    <th>Marca / Medida</th>
+                                    <th>Instalación</th>
+                                    <th>Km Recorrido</th>
+                                    <th>Costo</th>
+                                    <th>Estado</th>
+                                    <th class="text-end pe-3 requires-edit">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-llantas">
+                                <tr><td colspan="9" class="text-center text-secondary py-4">Cargando neumáticos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div id="footer-container"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/flota/frontend/assets/js/app.js?v=20260927"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const ok = await App.initLayout('llantas');
+    if (!ok) return;
+
+    // Cargar vehículos para el selector
+    const resVeh = await App.api('/flota/backend/controllers/VehiculoController.php?accion=listar');
+    if (resVeh && resVeh.success && resVeh.data && resVeh.data.vehiculos) {
+        document.getElementById('filtro-vehiculo').innerHTML = '<option value="">Todos los vehículos</option>' + 
+            resVeh.data.vehiculos.map(v => `<option value="${v.id}">${App.escapeHtml(v.placa)} | ${App.escapeHtml(v.marca || '')} ${App.escapeHtml(v.modelo || '')}</option>`).join('');
+    }
+
+    async function cargarLlantas() {
+        const vehiculo_id = document.getElementById('filtro-vehiculo').value;
+        const estado = document.getElementById('filtro-estado').value;
+        const buscar = document.getElementById('filtro-buscar').value.trim().toLowerCase();
+
+        const params = new URLSearchParams();
+        params.append('accion', 'listar');
+        if (vehiculo_id) params.append('vehiculo_id', vehiculo_id);
+        if (estado) params.append('estado', estado);
+
+        const res = await App.api(`/flota/backend/controllers/LlantaController.php?${params.toString()}`);
+        const tbody = document.getElementById('tabla-llantas');
+
+        if (res && res.success && res.data) {
+            let list = res.data.llantas || [];
+            const puedeEditar = res.data.puede_editar;
+
+            if (buscar) {
+                list = list.filter(ll => 
+                    (ll.codigo && ll.codigo.toLowerCase().includes(buscar)) ||
+                    (ll.marca && ll.marca.toLowerCase().includes(buscar)) ||
+                    (ll.medida && ll.medida.toLowerCase().includes(buscar)) ||
+                    (ll.placa && ll.placa.toLowerCase().includes(buscar))
+                );
+            }
+
+            document.getElementById('total-registros').textContent = `${list.length} llantas`;
+            document.getElementById('kpi-total-llantas').textContent = `${list.length} neumáticos`;
+
+            let costoTotal = 0;
+            let alertasDesgaste = 0;
+
+            list.forEach(ll => {
+                if (ll.estado === 'Activa') {
+                    costoTotal += parseFloat(ll.costo) || 0;
+                    if ((parseInt(ll.km_recorridos) || 0) >= 40000) {
+                        alertasDesgaste++;
+                    }
+                }
+            });
+
+            document.getElementById('kpi-costo-llantas').textContent = App.formatMoney(costoTotal);
+            document.getElementById('kpi-alerta-desgaste').textContent = `${alertasDesgaste} alertas`;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-secondary py-5">No se encontraron llantas registradas con los criterios seleccionados.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(ll => {
+                let badgeEstado = 'bg-secondary-subtle text-secondary';
+                if (ll.estado === 'Activa') badgeEstado = 'bg-success-subtle text-success';
+                else if (ll.estado === 'Por cambiar') badgeEstado = 'bg-warning-subtle text-warning';
+                else if (ll.estado === 'Desechada') badgeEstado = 'bg-danger-subtle text-danger';
+
+                const km = parseInt(ll.km_recorridos) || 0;
+                const kmClass = km >= 40000 ? 'text-danger' : (km >= 30000 ? 'text-warning' : 'text-light');
+
+                return `
+                <tr>
+                    <td class="fw-bold text-info"><i class="bi bi-geo-alt me-1"></i>${App.escapeHtml(ll.posicion)}</td>
+                    <td><code class="text-light fw-bold">${App.escapeHtml(ll.codigo)}</code></td>
+                    <td>
+                        <a href="/flota/frontend/vehiculos/detalle.html?id=${ll.vehiculo_id}" class="fw-bold text-light text-decoration-none">
+                            ${App.escapeHtml(ll.placa)}
+                        </a>
+                        <small class="text-secondary d-block">${App.escapeHtml(ll.sucursal || 'Sin sucursal')}</small>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-light">${App.escapeHtml(ll.marca)}</div>
+                        <small class="text-secondary">${App.escapeHtml(ll.medida)} (${App.escapeHtml(ll.tipo_llanta)})</small>
+                    </td>
+                    <td>
+                        <div>${App.formatDate(ll.fecha_instalacion)}</div>
+                        <small class="text-secondary">${Number(ll.km_instalacion || 0).toLocaleString()} km</small>
+                    </td>
+                    <td>
+                        <span class="fw-bold ${kmClass}">${Number(km).toLocaleString()} km</span>
+                        ${km >= 40000 ? '<span class="badge bg-danger-subtle text-danger ms-1" style="font-size:0.65rem;">Desgaste</span>' : ''}
+                    </td>
+                    <td class="text-light">${App.formatMoney(ll.costo)}</td>
+                    <td><span class="badge ${badgeEstado}">${App.escapeHtml(ll.estado)}</span></td>
+                    <td class="text-end pe-3 requires-edit">
+                        ${puedeEditar && ll.estado === 'Activa' ? `
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0 px-2" type="button" data-bs-toggle="dropdown">
+                                Acción
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                                <li>
+                                    <a class="dropdown-item btn-cambiar-estado" href="#" data-id="${ll.id}" data-estado="Por cambiar">
+                                        <i class="bi bi-exclamation-triangle text-warning me-2"></i> Marcar Por Cambiar
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item btn-cambiar-estado" href="#" data-id="${ll.id}" data-estado="Desechada">
+                                        <i class="bi bi-trash text-danger me-2"></i> Desechar / Fuera de uso
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item btn-cambiar-estado" href="#" data-id="${ll.id}" data-estado="En reencauche">
+                                        <i class="bi bi-arrow-repeat text-info me-2"></i> Enviar a Reencauche
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        ` : '<span class="text-secondary small">—</span>'}
+                    </td>
+                </tr>
+                `;
+            }).join('');
+
+            tbody.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const id = btn.getAttribute('data-id');
+                    const estado = btn.getAttribute('data-estado');
+                    if (confirm(`¿Deseas cambiar el estado de la llanta a '${estado}'?`)) {
+                        const r = await App.api('/flota/backend/controllers/LlantaController.php?accion=cambiar_estado', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id, estado })
+                        });
+                        if (r && r.success) {
+                            App.showAlert('success', r.mensaje || 'Estado actualizado.');
+                            cargarLlantas();
+                        } else {
+                            App.showAlert('danger', r.mensaje || 'Error al cambiar estado.');
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    cargarLlantas();
+
+    document.getElementById('formFiltros').addEventListener('submit', (e) => {
+        e.preventDefault();
+        cargarLlantas();
+    });
+
+    document.getElementById('btnLimpiar').addEventListener('click', () => {
+        document.getElementById('filtro-vehiculo').value = '';
+        document.getElementById('filtro-estado').value = 'Activa';
+        document.getElementById('filtro-buscar').value = '';
+        cargarLlantas();
+    });
+});
+</script>
+</body>
+</html>

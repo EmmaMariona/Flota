@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Vehículo - Gestión de Flota</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5.3 & Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="/flota/frontend/assets/css/estilo.css">
+</head>
+<body class="bg-body-tertiary">
+
+<div class="d-flex min-vh-100 layout-wrapper">
+    <div id="sidebar-container"></div>
+    <div class="d-flex flex-column flex-grow-1 main-content-wrapper">
+        <div id="navbar-container"></div>
+        <main class="container-fluid p-4 content-area">
+            <div id="alerts-container"></div>
+
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="fw-bold mb-1">Editar Vehículo</h2>
+                            <p class="text-secondary small mb-0">Modifica los datos técnicos y operativos de la unidad <span id="lbl-placa-header" class="text-light fw-bold"></span>.</p>
+                        </div>
+                        <a href="/flota/frontend/vehiculos/index.html" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                            <i class="bi bi-arrow-left"></i> Volver a la Lista
+                        </a>
+                    </div>
+
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            <form id="formEditarVehiculo">
+                                <input type="hidden" name="id" id="vehiculo-id">
+
+                                <h5 class="fw-semibold text-primary mb-3"><i class="bi bi-info-circle me-2"></i>Identificación del Vehículo</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Placa <span class="text-danger">*</span></label>
+                                        <input type="text" name="placa" id="placa" class="form-control text-uppercase fw-bold" required>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Sucursal Asignada</label>
+                                        <select name="sucursal_id" id="select-sucursal" class="form-select">
+                                            <option value="">-- Sin sucursal --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Tipo de Unidad</label>
+                                        <select name="tipo" id="tipo" class="form-select">
+                                            <option value="Camión">Camión</option>
+                                            <option value="Cabezal / Rastra">Cabezal / Rastra</option>
+                                            <option value="Pickup">Pickup</option>
+                                            <option value="Furgón">Furgón</option>
+                                            <option value="Plataforma">Plataforma</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <h5 class="fw-semibold text-primary mb-3"><i class="bi bi-gear me-2"></i>Especificaciones Mecánicas</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Marca</label>
+                                        <select name="marca_id" id="select-marca" class="form-select">
+                                            <option value="">-- Seleccionar marca --</option>
+                                        </select>
+                                        <input type="hidden" name="marca" id="input-marca-texto">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Modelo</label>
+                                        <select name="modelo_id" id="select-modelo" class="form-select" disabled>
+                                            <option value="">-- Seleccione una marca primero --</option>
+                                        </select>
+                                        <input type="hidden" name="modelo" id="input-modelo-texto">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Año</label>
+                                        <select name="anio" id="anio" class="form-select">
+                                            <option value="">-- Seleccionar año --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Número de Motor</label>
+                                        <input type="text" name="motor" id="motor" class="form-control">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Número de Chasis (VIN) <span class="text-danger">*</span></label>
+                                        <input type="text" name="vin" id="vin" class="form-control text-uppercase font-monospace" maxlength="17" required autocomplete="off">
+                                        <div id="vin-feedback" class="invalid-feedback"></div>
+                                        <div id="vin-help" class="form-text text-secondary small">Estándar ISO 3779 (1981+): 17 caracteres exactos (sin I, O, Q).</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Capacidad de Carga (Toneladas)</label>
+                                        <input type="number" step="0.1" name="tonelaje" id="tonelaje" class="form-control">
+                                    </div>
+                                </div>
+
+                                <h5 class="fw-semibold text-primary mb-3"><i class="bi bi-speedometer2 me-2"></i>Estado Operativo y Kilometraje</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Estado</label>
+                                        <select name="estado" id="estado" class="form-select">
+                                            <option value="Activo">Activo (En operación)</option>
+                                            <option value="Taller">Taller (En mantenimiento)</option>
+                                            <option value="Inactivo">Inactivo (Fuera de servicio)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Kilometraje Actual</label>
+                                        <div class="input-group">
+                                            <input type="number" name="kilometraje_actual" id="kilometraje_actual" class="form-control" min="0">
+                                            <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">km</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Fecha de Adquisición</label>
+                                        <input type="date" name="fecha_adquisicion" id="fecha_adquisicion" class="form-control">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Observaciones o Notas Adicionales</label>
+                                        <textarea name="observaciones" id="observaciones" class="form-control" rows="3"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 pt-3 border-top border-secondary border-opacity-25">
+                                    <a href="/flota/frontend/vehiculos/index.html" class="btn btn-outline-secondary">Cancelar</a>
+                                    <button type="submit" id="btnGuardar" class="btn btn-primary px-4 fw-semibold">
+                                        <i class="bi bi-save me-1"></i> Actualizar Vehículo
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div id="footer-container"></div>
+    </div>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/flota/frontend/assets/js/app.js?v=20260927"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const selectAnio = document.getElementById('anio');
+    const maxAnio = new Date().getFullYear() + 1;
+    let opcionesAnio = '<option value="">-- Seleccionar año --</option>';
+    for (let y = maxAnio; y >= 1950; y--) {
+        opcionesAnio += `<option value="${y}">${y}</option>`;
+    }
+    selectAnio.innerHTML = opcionesAnio;
+
+    const inputVin = document.getElementById('vin');
+    const vinFeedback = document.getElementById('vin-feedback');
+    const vinHelp = document.getElementById('vin-help');
+
+    function actualizarGuiaVin() {
+        const anioVal = parseInt(selectAnio.value, 10) || 0;
+        if (anioVal > 0 && anioVal < 1981) {
+            vinHelp.textContent = `Año ${anioVal} (< 1981): De 5 a 17 caracteres alfanuméricos.`;
+            inputVin.placeholder = 'Ej. A12345B';
+        } else {
+            vinHelp.textContent = 'Estándar ISO 3779 (1981+): 17 caracteres exactos (sin I, O, Q).';
+            inputVin.placeholder = 'Ej. 1GBJC34E721234567';
+        }
+    }
+
+    function validarVinLocal(forzarValidacion = false) {
+        const start = inputVin.selectionStart;
+        const end = inputVin.selectionEnd;
+        const upper = inputVin.value.toUpperCase();
+        if (inputVin.value !== upper) {
+            inputVin.value = upper;
+            if (document.activeElement === inputVin && start !== null) {
+                inputVin.setSelectionRange(start, end);
+            }
+        }
+
+        const vin = inputVin.value.trim();
+        const anioVal = parseInt(selectAnio.value, 10) || 0;
+
+        if (!vin && !forzarValidacion) {
+            inputVin.classList.remove('is-invalid', 'is-valid');
+            vinFeedback.textContent = '';
+            return { valido: false, mensaje: '' };
+        }
+
+        if (anioVal > 0 && anioVal < 1981) {
+            // Regla 1: Vehículos anteriores a 1981
+            const regexHistorico = /^[A-Z0-9]{5,17}$/;
+            if (!regexHistorico.test(vin)) {
+                const msg = 'El VIN debe contener entre 5 y 17 caracteres alfanuméricos.';
+                inputVin.classList.add('is-invalid');
+                inputVin.classList.remove('is-valid');
+                vinFeedback.textContent = msg;
+                return { valido: false, mensaje: msg };
+            }
+        } else {
+            // Regla 2: Vehículos modelo 1981 en adelante (ISO 3779)
+            const regexModerno = /^[A-HJ-NPR-Z0-9]{17}$/;
+            if (!regexModerno.test(vin)) {
+                const msg = 'El VIN debe contener exactamente 17 caracteres y no puede incluir las letras I, O o Q.';
+                inputVin.classList.add('is-invalid');
+                inputVin.classList.remove('is-valid');
+                vinFeedback.textContent = msg;
+                return { valido: false, mensaje: msg };
+            }
+        }
+
+        inputVin.classList.remove('is-invalid');
+        inputVin.classList.add('is-valid');
+        vinFeedback.textContent = '';
+        return { valido: true, mensaje: '' };
+    }
+
+    const ok = await App.initLayout('vehiculos');
+    if (!ok) return;
+
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) {
+        window.location.href = '/flota/frontend/vehiculos/index.html';
+        return;
+    }
+
+    inputVin.addEventListener('input', () => {
+        validarVinLocal(false);
+    });
+
+    inputVin.addEventListener('blur', async () => {
+        const resLocal = validarVinLocal(false);
+        if (resLocal.valido) {
+            const vin = inputVin.value.trim();
+            const anioVal = selectAnio.value || '';
+            const resApi = await App.api(`/flota/backend/controllers/VehiculoController.php?accion=validar_vin&vin=${encodeURIComponent(vin)}&anio=${encodeURIComponent(anioVal)}&excluir_id=${encodeURIComponent(id)}`);
+            if (resApi && !resApi.success) {
+                inputVin.classList.add('is-invalid');
+                inputVin.classList.remove('is-valid');
+                vinFeedback.textContent = resApi.mensaje;
+            }
+        }
+    });
+
+    selectAnio.addEventListener('change', () => {
+        actualizarGuiaVin();
+        if (inputVin.value.trim() !== '') {
+            validarVinLocal(true);
+        }
+    });
+
+    const selectMarca = document.getElementById('select-marca');
+    const selectModelo = document.getElementById('select-modelo');
+    const inputMarcaTexto = document.getElementById('input-marca-texto');
+    const inputModeloTexto = document.getElementById('input-modelo-texto');
+
+    async function cargarModelosPorMarca(marcaId, modeloGuardadoId = null, modeloGuardadoTexto = '') {
+        if (!marcaId) {
+            if (modeloGuardadoTexto) {
+                selectModelo.innerHTML = `<option value="" data-nombre="${App.escapeHtml(modeloGuardadoTexto)}" selected>${App.escapeHtml(modeloGuardadoTexto)} (Registrado)</option>`;
+                selectModelo.disabled = false;
+                inputModeloTexto.value = modeloGuardadoTexto;
+            } else {
+                selectModelo.innerHTML = '<option value="">-- Seleccione una marca primero --</option>';
+                selectModelo.disabled = true;
+                inputModeloTexto.value = '';
+            }
+            return;
+        }
+
+        selectModelo.disabled = true;
+        selectModelo.innerHTML = '<option value="">Cargando modelos...</option>';
+
+        const resMod = await App.api(`/flota/backend/controllers/CatalogoController.php?accion=listar_modelos&marca_id=${marcaId}&solo_activos=1`);
+        const modelos = (resMod && resMod.success && resMod.data && resMod.data.modelos) ? resMod.data.modelos : [];
+
+        let html = '<option value="">-- Seleccionar modelo --</option>';
+        let encontrado = false;
+
+        modelos.forEach(mo => {
+            const coincideId = modeloGuardadoId && Number(mo.id) === Number(modeloGuardadoId);
+            const coincideTxt = !coincideId && modeloGuardadoTexto && mo.nombre.trim().toLowerCase() === modeloGuardadoTexto.trim().toLowerCase();
+            const isSelected = coincideId || coincideTxt;
+            if (isSelected) {
+                encontrado = true;
+                inputModeloTexto.value = mo.nombre;
+            }
+            html += `<option value="${mo.id}" data-nombre="${App.escapeHtml(mo.nombre)}" ${isSelected ? 'selected' : ''}>${App.escapeHtml(mo.nombre)}</option>`;
+        });
+
+        if (!encontrado && modeloGuardadoTexto) {
+            html += `<option value="${modeloGuardadoId || ''}" data-nombre="${App.escapeHtml(modeloGuardadoTexto)}" selected>${App.escapeHtml(modeloGuardadoTexto)} (Registrado)</option>`;
+            inputModeloTexto.value = modeloGuardadoTexto;
+        }
+
+        selectModelo.innerHTML = html;
+        selectModelo.disabled = false;
+    }
+
+    // Cargar sucursales y catálogo de marcas
+    const [resSuc, resMarcas] = await Promise.all([
+        App.api('/flota/backend/controllers/SucursalController.php?accion=listar'),
+        App.api('/flota/backend/controllers/CatalogoController.php?accion=listar_marcas&solo_activas=1')
+    ]);
+
+    if (resSuc && resSuc.success && resSuc.data) {
+        const select = document.getElementById('select-sucursal');
+        select.innerHTML = '<option value="">-- Sin sucursal --</option>' + 
+            resSuc.data.map(s => `<option value="${s.id}">${App.escapeHtml(s.nombre)}</option>`).join('');
+    }
+
+    const marcasActivas = (resMarcas && resMarcas.success && resMarcas.data && resMarcas.data.marcas) ? resMarcas.data.marcas : [];
+
+    // Cargar vehículo
+    const res = await App.api(`/flota/backend/controllers/VehiculoController.php?accion=obtener&id=${id}`);
+    if (res && res.success && res.data && res.data.vehiculo) {
+        const v = res.data.vehiculo;
+        document.getElementById('vehiculo-id').value = v.id;
+        document.getElementById('lbl-placa-header').textContent = v.placa;
+        document.getElementById('placa').value = v.placa || '';
+        document.getElementById('select-sucursal').value = v.sucursal_id || '';
+        document.getElementById('tipo').value = v.tipo || 'Camión';
+        if (v.anio) {
+            if (!selectAnio.querySelector(`option[value="${v.anio}"]`)) {
+                selectAnio.insertAdjacentHTML('beforeend', `<option value="${v.anio}">${v.anio}</option>`);
+            }
+            selectAnio.value = v.anio;
+        }
+        document.getElementById('motor').value = v.motor || '';
+        document.getElementById('vin').value = v.vin || '';
+        actualizarGuiaVin();
+        document.getElementById('tonelaje').value = v.tonelaje || '';
+        document.getElementById('estado').value = v.estado || 'Activo';
+        document.getElementById('kilometraje_actual').value = v.kilometraje_actual || 0;
+        document.getElementById('fecha_adquisicion').value = v.fecha_adquisicion || '';
+        document.getElementById('observaciones').value = v.observaciones || '';
+
+        // Poblar Select de Marca y seleccionar el valor guardado
+        let htmlMarcas = '<option value="">-- Seleccionar marca --</option>';
+        let marcaSeleccionadaId = null;
+        const marcaGuardadaTexto = (v.marca || '').trim();
+        const modeloGuardadoTexto = (v.modelo || '').trim();
+
+        marcasActivas.forEach(m => {
+            const coincideId = v.marca_id && Number(m.id) === Number(v.marca_id);
+            const coincideTxt = !coincideId && marcaGuardadaTexto && m.nombre.trim().toLowerCase() === marcaGuardadaTexto.toLowerCase();
+            const isSelected = coincideId || coincideTxt;
+            if (isSelected) {
+                marcaSeleccionadaId = m.id;
+                inputMarcaTexto.value = m.nombre;
+            }
+            htmlMarcas += `<option value="${m.id}" data-nombre="${App.escapeHtml(m.nombre)}" ${isSelected ? 'selected' : ''}>${App.escapeHtml(m.nombre)}</option>`;
+        });
+
+        if (!marcaSeleccionadaId && marcaGuardadaTexto) {
+            htmlMarcas += `<option value="${v.marca_id || ''}" data-nombre="${App.escapeHtml(marcaGuardadaTexto)}" selected>${App.escapeHtml(marcaGuardadaTexto)} (Registrado)</option>`;
+            inputMarcaTexto.value = marcaGuardadaTexto;
+            marcaSeleccionadaId = v.marca_id || null;
+        }
+
+        selectMarca.innerHTML = htmlMarcas;
+        await cargarModelosPorMarca(marcaSeleccionadaId, v.modelo_id, modeloGuardadoTexto);
+    } else {
+        App.showAlert('danger', 'Vehículo no encontrado.');
+        setTimeout(() => window.location.href = '/flota/frontend/vehiculos/index.html', 1500);
+        return;
+    }
+
+    selectMarca.addEventListener('change', async () => {
+        const marcaId = selectMarca.value;
+        const opt = selectMarca.options[selectMarca.selectedIndex];
+        inputMarcaTexto.value = opt ? (opt.getAttribute('data-nombre') || opt.textContent) : '';
+        inputModeloTexto.value = '';
+        await cargarModelosPorMarca(marcaId, null, '');
+    });
+
+    selectModelo.addEventListener('change', () => {
+        const opt = selectModelo.options[selectModelo.selectedIndex];
+        inputModeloTexto.value = opt ? (opt.getAttribute('data-nombre') || opt.textContent) : '';
+    });
+
+    const form = document.getElementById('formEditarVehiculo');
+    const btnGuardar = document.getElementById('btnGuardar');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const validacionVin = validarVinLocal(true);
+        if (!validacionVin.valido) {
+            App.showAlert('danger', validacionVin.mensaje);
+            inputVin.focus();
+            return;
+        }
+
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Guardando...`;
+
+        const formData = new FormData(form);
+        formData.set('vin', inputVin.value.trim().toUpperCase());
+        formData.append('accion', 'actualizar');
+
+        try {
+            const res = await fetch('/flota/backend/controllers/VehiculoController.php?accion=actualizar', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+
+            if (data && data.success) {
+                App.flashAlert('success', data.mensaje || 'Vehículo actualizado exitosamente.');
+                window.location.href = `/flota/frontend/vehiculos/detalle.html?id=${id}`;
+            } else {
+                const errMsg = data.mensaje || 'Error al actualizar el vehículo.';
+                App.showAlert('danger', errMsg);
+                if (errMsg.toUpperCase().includes('VIN')) {
+                    inputVin.classList.add('is-invalid');
+                    inputVin.classList.remove('is-valid');
+                    vinFeedback.textContent = errMsg;
+                    inputVin.focus();
+                }
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = `<i class="bi bi-save me-1"></i> Actualizar Vehículo`;
+            }
+        } catch (err) {
+            console.error(err);
+            App.showAlert('danger', 'Error de conexión con el servidor.');
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = `<i class="bi bi-save me-1"></i> Actualizar Vehículo`;
+        }
+    });
+});
+</script>
+</body>
+</html>
