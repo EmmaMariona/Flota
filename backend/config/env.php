@@ -38,10 +38,12 @@ if (!function_exists('cargarEnv')) {
                     $valor = substr($valor, 1, -1);
                 }
 
-                // Cargar en $_ENV, $_SERVER y putenv
-                $_ENV[$clave] = $valor;
-                $_SERVER[$clave] = $valor;
-                putenv("{$clave}={$valor}");
+                // Cargar en $_ENV, $_SERVER y putenv solo si no está definida en el entorno del sistema/contenedor
+                if (getenv($clave) === false && !isset($_SERVER[$clave])) {
+                    $_ENV[$clave] = $valor;
+                    $_SERVER[$clave] = $valor;
+                    putenv("{$clave}={$valor}");
+                }
             }
         }
     }
@@ -50,15 +52,19 @@ if (!function_exists('cargarEnv')) {
 if (!function_exists('env')) {
     /**
      * Helper para obtener una variable de entorno con valor por defecto.
+     * Prioriza variables de entorno del sistema/contenedor (Docker), luego $_SERVER y $_ENV.
      */
     function env(string $clave, mixed $default = null): mixed
     {
-        if (isset($_ENV[$clave])) {
-            return $_ENV[$clave];
-        }
         $val = getenv($clave);
-        if ($val !== false) {
+        if ($val !== false && $val !== '') {
             return $val;
+        }
+        if (isset($_SERVER[$clave]) && $_SERVER[$clave] !== '') {
+            return $_SERVER[$clave];
+        }
+        if (isset($_ENV[$clave]) && $_ENV[$clave] !== '') {
+            return $_ENV[$clave];
         }
         return $default;
     }

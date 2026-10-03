@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # Aplicación Web: Apache + PHP 8.2 (Backend MVC + Frontend)
+  # -------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flota_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-flota_vehicular}
+      - DB_USER=${DB_USER:-flota_user}
+      - DB_PASS=${DB_PASS:-flota_secret_2026}
+      - DB_CHARSET=utf8mb4
+      - BASE_URL=${BASE_URL:-/flota}
+      - APP_ENV=${APP_ENV:-production}
+    volumes:
+      # Montaje del código fuente para desarrollo en vivo
+      - ./:/var/www/html/flota
+      # Persistencia de archivos adjuntos subidos
+      - flota_uploads:/var/www/html/flota/backend/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - flota_network
+
+  # -------------------------------------------------------------
+  # Base de Datos: MySQL 8.0 con inicialización automática
+  # -------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: flota_db
+    restart: unless-stopped
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-root_secret_2026}
+      MYSQL_DATABASE: ${DB_NAME:-flota_vehicular}
+      MYSQL_USER: ${DB_USER:-flota_user}
+      MYSQL_PASSWORD: ${DB_PASS:-flota_secret_2026}
+    volumes:
+      # Persistencia de datos de MySQL
+      - flota_db_data:/var/lib/mysql
+      # Script SQL de inicialización automática al arrancar por primera vez
+      - ./docker/db-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # Puerto 3307 en el host para evitar conflicto si XAMPP usa el 3306
+      - "${DB_EXTERNAL_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - flota_network
+
+  # -------------------------------------------------------------
+  # Administrador de Base de Datos: phpMyAdmin (Opcional)
+  # -------------------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: flota_pma
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 50M
+    ports:
+      - "${PMA_PORT:-8081}:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - flota_network
+
+# ---------------------------------------------------------------
+# Volúmenes Persistentes
+# ---------------------------------------------------------------
+volumes:
+  flota_db_data:
+    name: flota_db_data
+  flota_uploads:
+    name: flota_uploads
+
+# ---------------------------------------------------------------
+# Red Interna de Contenedores
+# ---------------------------------------------------------------
+networks:
+  flota_network:
+    name: flota_network
+    driver: bridge
