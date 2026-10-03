@@ -47,6 +47,9 @@
                         <a href="#" id="btn-editar-vehiculo" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
                             <i class="bi bi-pencil"></i> Editar
                         </a>
+                        <button type="button" id="btn-eliminar-vehiculo" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+                            <i class="bi bi-trash"></i> Eliminar Unidad
+                        </button>
                     </div>
                 </div>
 
@@ -327,6 +330,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('btn-nuevo-mantenimiento').href = `/flota/frontend/mantenimientos/crear.html?vehiculo_id=${v.id}`;
             document.getElementById('btn-asignar-llanta').href = `/flota/frontend/llantas/registrar.html?vehiculo_id=${v.id}`;
             document.getElementById('btn-editar-vehiculo').href = `/flota/frontend/vehiculos/editar.html?id=${v.id}`;
+
+            const btnEliminarVeh = document.getElementById('btn-eliminar-vehiculo');
+            if (btnEliminarVeh) {
+                btnEliminarVeh.onclick = async () => {
+                    if (confirm(`¿Deseas eliminar la unidad con placa ${v.placa}? También se eliminarán sus registros vinculados.`)) {
+                        btnEliminarVeh.disabled = true;
+                        const r = await App.api(`/flota/backend/controllers/VehiculoController.php?accion=eliminar&id=${v.id}`);
+                        if (r && r.success) {
+                            App.flashAlert('success', `Unidad ${v.placa} eliminada correctamente.`);
+                            window.location.href = '/flota/frontend/vehiculos/index.html';
+                        } else {
+                            App.showAlert('danger', r.mensaje || 'Error al eliminar el vehículo.');
+                            btnEliminarVeh.disabled = false;
+                        }
+                    }
+                };
+            }
         }
 
         document.getElementById('spec-sucursal').innerHTML = `<i class="bi bi-geo-alt text-danger me-1"></i>${App.escapeHtml(v.sucursal || 'Sin sucursal')}`;

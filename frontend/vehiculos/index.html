@@ -81,9 +81,14 @@
                 <!-- Tabla de Vehículos -->
                 <div class="card shadow-sm">
                     <div class="card-header bg-dark border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center py-3">
-                        <span class="fw-semibold text-light d-flex align-items-center gap-2">
-                            <i class="bi bi-truck text-primary"></i> Unidades Registradas
-                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-semibold text-light d-flex align-items-center gap-2">
+                                <i class="bi bi-truck text-primary"></i> Unidades Registradas
+                            </span>
+                            <small class="text-secondary d-none d-sm-inline ms-2">
+                                <i ></i>Doble clic en una fila para ver el detalle
+                            </small>
+                        </div>
                         <span class="badge bg-secondary-subtle text-secondary" id="total-registros">0 vehículos</span>
                     </div>
                     <div class="table-responsive">
@@ -96,12 +101,11 @@
                                     <th>Año / Tipo</th>
                                     <th>Kilometraje</th>
                                     <th>Estado</th>
-                                    <th class="text-end">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-vehiculos">
                                 <tr>
-                                    <td colspan="7" class="text-center text-secondary py-5">
+                                    <td colspan="6" class="text-center text-secondary py-5">
                                         <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
                                         Cargando inventario de vehículos...
                                     </td>
@@ -150,15 +154,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (res && res.success && res.data) {
             const list = res.data.vehiculos || [];
-            const puedeEditar = res.data.puede_editar;
-            const esAdmin = res.data.es_admin;
 
             countBadge.textContent = `${list.length} vehículo${list.length !== 1 ? 's' : ''}`;
 
             if (list.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-secondary py-5">
+                        <td colspan="6" class="text-center text-secondary py-5">
                             <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
                             No se encontraron vehículos con los criterios seleccionados.
                         </td>
@@ -173,11 +175,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (v.estado === 'Inactivo') badgeClase = 'badge-inactivo';
 
                 return `
-                <tr>
+                <tr class="fila-vehiculo" data-id="${v.id}" style="cursor: pointer; user-select: none;" title="Doble clic para ver el detalle de la unidad ${App.escapeHtml(v.placa)}">
                     <td>
-                        <a href="/flota/frontend/vehiculos/detalle.html?id=${v.id}" class="fw-bold text-decoration-none text-info fs-6">
+                        <span class="fw-bold text-info fs-6">
                             ${App.escapeHtml(v.placa)}
-                        </a>
+                        </span>
                     </td>
                     <td>
                         <span class="badge bg-secondary-subtle text-light border border-secondary border-opacity-50">
@@ -198,43 +200,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td>
                         <span class="badge ${badgeClase} px-2 py-1">${App.escapeHtml(v.estado)}</span>
                     </td>
-                    <td class="text-end">
-                        <div class="btn-group btn-group-sm">
-                            <a href="/flota/frontend/vehiculos/detalle.html?id=${v.id}" class="btn btn-outline-info" title="Ficha Técnica Completa">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a href="/flota/frontend/vehiculos/detalle.html?id=${v.id}&tab=documentos" class="btn btn-outline-primary" title="Ver Documentación y Permisos">
-                                <i class="bi bi-file-earmark-check"></i>
-                            </a>
-                            ${puedeEditar ? `
-                            <a href="/flota/frontend/vehiculos/editar.html?id=${v.id}" class="btn btn-outline-warning" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            ` : ''}
-                            ${esAdmin ? `
-                            <button class="btn btn-outline-danger btn-eliminar" data-id="${v.id}" data-placa="${App.escapeHtml(v.placa)}" title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            ` : ''}
-                        </div>
-                    </td>
                 </tr>
                 `;
             }).join('');
 
-            // Listeners para botones eliminar
-            tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const id = btn.getAttribute('data-id');
-                    const placa = btn.getAttribute('data-placa');
-                    if (confirm(`¿Deseas eliminar el vehículo con placa ${placa}? También se eliminarán sus registros vinculados.`)) {
-                        const r = await App.api(`/flota/backend/controllers/VehiculoController.php?accion=eliminar&id=${id}`);
-                        if (r && r.success) {
-                            App.showAlert('success', 'Vehículo eliminado correctamente.');
-                            cargarVehiculos();
-                        } else {
-                            App.showAlert('danger', r.mensaje || 'Error al eliminar vehículo.');
-                        }
+            // Navegar al detalle de la unidad al hacer doble clic en la fila
+            tbody.querySelectorAll('.fila-vehiculo').forEach(fila => {
+                fila.addEventListener('dblclick', () => {
+                    const id = fila.getAttribute('data-id');
+                    if (id) {
+                        window.location.href = `/flota/frontend/vehiculos/detalle.html?id=${id}`;
                     }
                 });
             });

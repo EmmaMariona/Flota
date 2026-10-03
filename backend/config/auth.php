@@ -6,9 +6,9 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!headers_sent()) {
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Pragma: no-cache');
-    if (empty($_COOKIE['flota_cache_v']) || $_COOKIE['flota_cache_v'] !== '20260927_v7') {
+    if (empty($_COOKIE['flota_cache_v']) || $_COOKIE['flota_cache_v'] !== '20260927_v8') {
         header('Clear-Site-Data: "cache"');
-        setcookie('flota_cache_v', '20260927_v7', time() + 86400 * 30, '/');
+        setcookie('flota_cache_v', '20260927_v8', time() + 86400 * 30, '/');
     }
 }
 

@@ -249,7 +249,7 @@ switch ($accion) {
         break;
 
     case 'eliminar':
-        requerirRolApi(['Administrador']);
+        requerirRolApi(['Administrador', 'Supervisor']);
         $id = (int)($_REQUEST['id'] ?? 0);
 
         if ($id <= 0) {
