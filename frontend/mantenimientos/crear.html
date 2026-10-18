@@ -96,10 +96,11 @@
                                         <input type="date" name="fecha_realizada" class="form-control">
                                     </div>
                                     <div class="col-12 col-md-3">
-                                        <label class="form-label">Kilometraje al Servicio</label>
-                                        <div class="input-group">
-                                            <input type="number" name="kilometraje_servicio" id="kilometraje_servicio" class="form-control" min="0">
+                                        <label class="form-label">Kilometraje al Servicio <span class="text-danger">*</span></label>
+                                        <div class="input-group has-validation">
+                                            <input type="number" name="kilometraje_servicio" id="kilometraje_servicio" class="form-control" required min="0" placeholder="Ej. 50000">
                                             <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">km</span>
+                                            <div id="km-feedback" class="invalid-feedback">El kilometraje al servicio es obligatorio y debe ser mayor o igual a 0.</div>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-3">
@@ -173,7 +174,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const sucId = opt.getAttribute('data-sucursal');
                 const km = opt.getAttribute('data-km');
                 if (sucId) document.getElementById('sucursal_id').value = sucId;
-                if (km) document.getElementById('kilometraje_servicio').value = km;
+                if (km !== null && km !== undefined && km !== '') {
+                    const inputKm = document.getElementById('kilometraje_servicio');
+                    inputKm.value = km;
+                    inputKm.classList.remove('is-invalid');
+                    inputKm.classList.add('is-valid');
+                }
             }
         });
 
@@ -184,11 +190,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const form = document.getElementById('formCrearMantenimiento');
     const btnGuardar = document.getElementById('btnGuardar');
+    const inputKmServicio = document.getElementById('kilometraje_servicio');
+    const kmFeedback = document.getElementById('km-feedback');
     const inputArchivoAdjunto = document.getElementById('archivo_adjunto');
     App.vincularValidacionArchivo(inputArchivoAdjunto);
 
+    if (inputKmServicio) {
+        inputKmServicio.addEventListener('input', () => {
+            const val = inputKmServicio.value.trim();
+            if (val !== '' && !isNaN(val) && Number(val) >= 0) {
+                inputKmServicio.classList.remove('is-invalid');
+                inputKmServicio.classList.add('is-valid');
+            } else {
+                inputKmServicio.classList.remove('is-valid');
+            }
+        });
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const kmVal = inputKmServicio ? inputKmServicio.value.trim() : '';
+        if (kmVal === '') {
+            App.showAlert('danger', 'El kilometraje al servicio es un campo obligatorio.');
+            inputKmServicio.classList.add('is-invalid');
+            if (kmFeedback) kmFeedback.textContent = 'El kilometraje al servicio es un campo obligatorio.';
+            inputKmServicio.focus();
+            return;
+        }
+        if (isNaN(kmVal) || Number(kmVal) < 0) {
+            App.showAlert('danger', 'El kilometraje al servicio debe ser un número entero mayor o igual a 0.');
+            inputKmServicio.classList.add('is-invalid');
+            if (kmFeedback) kmFeedback.textContent = 'El kilometraje debe ser mayor o igual a 0.';
+            inputKmServicio.focus();
+            return;
+        }
+        inputKmServicio.classList.remove('is-invalid');
 
         if (inputArchivoAdjunto && inputArchivoAdjunto.files && inputArchivoAdjunto.files[0]) {
             const valArchivo = App.validarArchivo(inputArchivoAdjunto.files[0]);

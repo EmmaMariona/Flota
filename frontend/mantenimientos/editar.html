@@ -24,14 +24,35 @@
 
             <div class="row justify-content-center">
                 <div class="col-12 col-xl-10">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
                         <div>
-                            <h2 class="fw-bold mb-1">Editar Mantenimiento #<span id="lbl-id">--</span></h2>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <a href="/flota/frontend/mantenimientos/index.html" class="text-secondary text-decoration-none small">
+                                    <i class="bi bi-arrow-left"></i> Mantenimientos
+                                </a>
+                                <span class="text-secondary small">/</span>
+                                <span class="text-light small fw-bold">Orden #<span id="lbl-id-bread">--</span></span>
+                            </div>
+                            <h2 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                                <span>Editar Mantenimiento #<span id="lbl-id">--</span></span>
+                                <span class="badge fs-6 px-3 py-1" id="lbl-estado-badge">--</span>
+                            </h2>
                             <p class="text-secondary small mb-0">Actualiza los datos técnicos, costos o estado de la orden de servicio.</p>
                         </div>
-                        <a href="/flota/frontend/mantenimientos/index.html" class="btn btn-outline-secondary d-flex align-items-center gap-1">
-                            <i class="bi bi-arrow-left"></i> Volver a la Lista
-                        </a>
+                        <div class="d-flex gap-2 align-items-center flex-wrap" id="header-acciones">
+                            <a href="#" id="btnImprimirHeader" target="_blank" class="btn btn-outline-light d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-printer"></i> Imprimir Orden
+                            </a>
+                            <button type="button" id="btnCompletarHeader" class="btn btn-outline-success d-flex align-items-center gap-1 shadow-sm" style="display:none;">
+                                <i class="bi bi-check2"></i> Marcar Completado
+                            </button>
+                            <button type="button" id="btnEliminarHeader" class="btn btn-outline-danger d-flex align-items-center gap-1 shadow-sm" style="display:none;">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                            <a href="/flota/frontend/mantenimientos/index.html" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+                                <i class="bi bi-arrow-left"></i> Volver a la Lista
+                            </a>
+                        </div>
                     </div>
 
                     <div class="card shadow-sm">
@@ -93,10 +114,11 @@
                                         <input type="date" name="fecha_realizada" id="fecha_realizada" class="form-control">
                                     </div>
                                     <div class="col-12 col-md-3">
-                                        <label class="form-label">Kilometraje al Servicio</label>
-                                        <div class="input-group">
-                                            <input type="number" name="kilometraje_servicio" id="kilometraje_servicio" class="form-control" min="0">
+                                        <label class="form-label">Kilometraje al Servicio <span class="text-danger">*</span></label>
+                                        <div class="input-group has-validation">
+                                            <input type="number" name="kilometraje_servicio" id="kilometraje_servicio" class="form-control" required min="0" placeholder="Ej. 50000">
                                             <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">km</span>
+                                            <div id="km-feedback" class="invalid-feedback">El kilometraje al servicio es obligatorio y debe ser mayor o igual a 0.</div>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-3">
@@ -171,7 +193,102 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const m = resMant.data.mantenimiento;
+    const puedeEliminar = resMant.data.puede_eliminar || ['Administrador', 'Supervisor'].includes(App.currentUser?.rol);
+
     document.getElementById('lbl-id').textContent = m.id;
+    const breadEl = document.getElementById('lbl-id-bread');
+    if (breadEl) breadEl.textContent = m.id;
+
+    const badgeEl = document.getElementById('lbl-estado-badge');
+    if (badgeEl) {
+        let badgeClase = 'bg-info-subtle text-info';
+        if (m.estado === 'Completado') badgeClase = 'bg-success-subtle text-success';
+        else if (m.estado === 'En proceso') badgeClase = 'bg-warning-subtle text-warning';
+        else if (m.estado === 'Cancelado') badgeClase = 'bg-danger-subtle text-danger';
+        badgeEl.className = `badge ${badgeClase} fs-6 px-3 py-1`;
+        badgeEl.textContent = m.estado;
+    }
+
+    const urlImprimir = `/flota/frontend/mantenimientos/imprimir.html?id=${m.id}`;
+    const btnImprimirHeader = document.getElementById('btnImprimirHeader');
+    if (btnImprimirHeader) btnImprimirHeader.href = urlImprimir;
+
+    const btnCompletarHeader = document.getElementById('btnCompletarHeader');
+    if (m.estado !== 'Completado') {
+        const handlerCompletar = async () => {
+            if (!confirm(`¿Deseas marcar el mantenimiento #${m.id} como Completado?`)) return;
+
+            if (btnCompletarHeader) {
+                btnCompletarHeader.disabled = true;
+                btnCompletarHeader.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Procesando...`;
+            }
+
+            try {
+                const r = await App.api(`/flota/backend/controllers/MantenimientoController.php?accion=completar&id=${m.id}`);
+                if (r && r.success) {
+                    App.flashAlert('success', r.mensaje || 'Mantenimiento marcado como Completado.');
+                    window.location.reload();
+                } else {
+                    App.showAlert('danger', r.mensaje || 'Error al completar el mantenimiento.');
+                    if (btnCompletarHeader) {
+                        btnCompletarHeader.disabled = false;
+                        btnCompletarHeader.innerHTML = `<i class="bi bi-check2"></i> Marcar Completado`;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                App.showAlert('danger', 'Error de conexión al completar el mantenimiento.');
+                if (btnCompletarHeader) {
+                    btnCompletarHeader.disabled = false;
+                    btnCompletarHeader.innerHTML = `<i class="bi bi-check2"></i> Marcar Completado`;
+                }
+            }
+        };
+
+        if (btnCompletarHeader) {
+            btnCompletarHeader.style.display = 'inline-flex';
+            btnCompletarHeader.addEventListener('click', handlerCompletar);
+        }
+    }
+
+    const btnEliminarHeader = document.getElementById('btnEliminarHeader');
+    if (puedeEliminar) {
+        const handlerEliminar = async () => {
+            if (!confirm(`¿Estás seguro de que deseas eliminar este mantenimiento #${m.id}? Esta acción eliminará el registro y sus comprobantes de forma permanente.`)) return;
+
+            if (btnEliminarHeader) {
+                btnEliminarHeader.disabled = true;
+                btnEliminarHeader.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Eliminando...`;
+            }
+
+            try {
+                const r = await App.api(`/flota/backend/controllers/MantenimientoController.php?accion=eliminar&id=${m.id}`);
+                if (r && r.success) {
+                    App.flashAlert('success', r.mensaje || 'Mantenimiento eliminado correctamente.');
+                    window.location.href = '/flota/frontend/mantenimientos/index.html';
+                } else {
+                    App.showAlert('danger', r.mensaje || 'Error al eliminar el mantenimiento.');
+                    if (btnEliminarHeader) {
+                        btnEliminarHeader.disabled = false;
+                        btnEliminarHeader.innerHTML = `<i class="bi bi-trash"></i> Eliminar`;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                App.showAlert('danger', 'Error de conexión al eliminar el mantenimiento.');
+                if (btnEliminarHeader) {
+                    btnEliminarHeader.disabled = false;
+                    btnEliminarHeader.innerHTML = `<i class="bi bi-trash"></i> Eliminar`;
+                }
+            }
+        };
+
+        if (btnEliminarHeader) {
+            btnEliminarHeader.style.display = 'inline-flex';
+            btnEliminarHeader.addEventListener('click', handlerEliminar);
+        }
+    }
+
     document.getElementById('mant-id').value = m.id;
     document.getElementById('vehiculo_id').value = m.vehiculo_id;
     document.getElementById('sucursal_id').value = m.sucursal_id || '';
@@ -202,11 +319,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const form = document.getElementById('formEditarMantenimiento');
     const btnGuardar = document.getElementById('btnGuardar');
+    const inputKmServicio = document.getElementById('kilometraje_servicio');
+    const kmFeedback = document.getElementById('km-feedback');
     const inputArchivoAdjunto = document.getElementById('archivo_adjunto');
     App.vincularValidacionArchivo(inputArchivoAdjunto);
 
+    if (inputKmServicio) {
+        inputKmServicio.addEventListener('input', () => {
+            const val = inputKmServicio.value.trim();
+            if (val !== '' && !isNaN(val) && Number(val) >= 0) {
+                inputKmServicio.classList.remove('is-invalid');
+                inputKmServicio.classList.add('is-valid');
+            } else {
+                inputKmServicio.classList.remove('is-valid');
+            }
+        });
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const kmVal = inputKmServicio ? inputKmServicio.value.trim() : '';
+        if (kmVal === '') {
+            App.showAlert('danger', 'El kilometraje al servicio es un campo obligatorio.');
+            inputKmServicio.classList.add('is-invalid');
+            if (kmFeedback) kmFeedback.textContent = 'El kilometraje al servicio es un campo obligatorio.';
+            inputKmServicio.focus();
+            return;
+        }
+        if (isNaN(kmVal) || Number(kmVal) < 0) {
+            App.showAlert('danger', 'El kilometraje al servicio debe ser un número entero mayor o igual a 0.');
+            inputKmServicio.classList.add('is-invalid');
+            if (kmFeedback) kmFeedback.textContent = 'El kilometraje debe ser mayor o igual a 0.';
+            inputKmServicio.focus();
+            return;
+        }
+        inputKmServicio.classList.remove('is-invalid');
 
         if (inputArchivoAdjunto && inputArchivoAdjunto.files && inputArchivoAdjunto.files[0]) {
             const valArchivo = App.validarArchivo(inputArchivoAdjunto.files[0]);

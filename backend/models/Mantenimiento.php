@@ -144,7 +144,7 @@ class Mantenimiento
         $sucursal_id = !empty($datos['sucursal_id']) ? (int)$datos['sucursal_id'] : null;
         $costo = !empty($datos['costo']) ? (float)$datos['costo'] : 0.00;
         $fecha_realizada = !empty($datos['fecha_realizada']) ? $datos['fecha_realizada'] : null;
-        $km_servicio = !empty($datos['kilometraje_servicio']) ? (int)$datos['kilometraje_servicio'] : null;
+        $km_servicio = isset($datos['kilometraje_servicio']) && $datos['kilometraje_servicio'] !== '' && $datos['kilometraje_servicio'] !== null ? (int)$datos['kilometraje_servicio'] : null;
 
         $stmt->bind_param(
             "iisssdssisss",
@@ -199,7 +199,7 @@ class Mantenimiento
         $sucursal_id = !empty($datos['sucursal_id']) ? (int)$datos['sucursal_id'] : null;
         $costo = !empty($datos['costo']) ? (float)$datos['costo'] : 0.00;
         $fecha_realizada = !empty($datos['fecha_realizada']) ? $datos['fecha_realizada'] : null;
-        $km_servicio = !empty($datos['kilometraje_servicio']) ? (int)$datos['kilometraje_servicio'] : null;
+        $km_servicio = isset($datos['kilometraje_servicio']) && $datos['kilometraje_servicio'] !== '' && $datos['kilometraje_servicio'] !== null ? (int)$datos['kilometraje_servicio'] : null;
 
         $stmt->bind_param(
             "iisssdssisssi",

@@ -49,6 +49,7 @@ switch ($accion) {
             'mantenimiento' => $mantenimiento,
             'vehiculo' => $vehiculo,
             'puede_editar' => puedeEditar(),
+            'puede_eliminar' => tieneRol(['Administrador', 'Supervisor']),
             'es_admin' => tieneRol(['Administrador'])
         ]);
         break;
@@ -62,6 +63,15 @@ switch ($accion) {
 
         if ($vehiculo_id <= 0 || empty($titulo) || empty($fecha_programada)) {
             respuestaJson(false, null, 'Vehículo, Título y Fecha Programada son obligatorios.', 400);
+        }
+
+        if (!isset($_POST['kilometraje_servicio']) || trim((string)$_POST['kilometraje_servicio']) === '') {
+            respuestaJson(false, null, 'El kilometraje al servicio es un campo obligatorio.', 400);
+        }
+
+        $kmServicio = filter_var($_POST['kilometraje_servicio'], FILTER_VALIDATE_INT);
+        if ($kmServicio === false || $kmServicio < 0) {
+            respuestaJson(false, null, 'El kilometraje al servicio debe ser un número entero mayor o igual a 0.', 400);
         }
 
         $tieneArchivo = isset($_FILES['archivo_adjunto']) && $_FILES['archivo_adjunto']['error'] !== UPLOAD_ERR_NO_FILE;
@@ -81,7 +91,7 @@ switch ($accion) {
             'costo' => !empty($_POST['costo']) ? (float)$_POST['costo'] : 0,
             'fecha_programada' => $fecha_programada,
             'fecha_realizada' => !empty($_POST['fecha_realizada']) ? $_POST['fecha_realizada'] : null,
-            'kilometraje_servicio' => !empty($_POST['kilometraje_servicio']) ? (int)$_POST['kilometraje_servicio'] : null,
+            'kilometraje_servicio' => $kmServicio,
             'proveedor' => trim($_POST['proveedor'] ?? ''),
             'estado' => $_POST['estado'] ?? 'Programado',
             'observaciones' => trim($_POST['observaciones'] ?? '')
@@ -112,6 +122,15 @@ switch ($accion) {
             respuestaJson(false, null, 'Datos incompletos para actualizar el mantenimiento.', 400);
         }
 
+        if (!isset($_POST['kilometraje_servicio']) || trim((string)$_POST['kilometraje_servicio']) === '') {
+            respuestaJson(false, null, 'El kilometraje al servicio es un campo obligatorio.', 400);
+        }
+
+        $kmServicio = filter_var($_POST['kilometraje_servicio'], FILTER_VALIDATE_INT);
+        if ($kmServicio === false || $kmServicio < 0) {
+            respuestaJson(false, null, 'El kilometraje al servicio debe ser un número entero mayor o igual a 0.', 400);
+        }
+
         $tieneArchivo = isset($_FILES['archivo_adjunto']) && $_FILES['archivo_adjunto']['error'] !== UPLOAD_ERR_NO_FILE;
         if ($tieneArchivo) {
             $valAdjunto = ValidadorArchivo::validar($_FILES['archivo_adjunto']);
@@ -129,7 +148,7 @@ switch ($accion) {
             'costo' => !empty($_POST['costo']) ? (float)$_POST['costo'] : 0,
             'fecha_programada' => $_POST['fecha_programada'] ?? date('Y-m-d'),
             'fecha_realizada' => !empty($_POST['fecha_realizada']) ? $_POST['fecha_realizada'] : null,
-            'kilometraje_servicio' => !empty($_POST['kilometraje_servicio']) ? (int)$_POST['kilometraje_servicio'] : null,
+            'kilometraje_servicio' => $kmServicio,
             'proveedor' => trim($_POST['proveedor'] ?? ''),
             'estado' => $_POST['estado'] ?? 'Programado',
             'observaciones' => trim($_POST['observaciones'] ?? '')
@@ -169,7 +188,7 @@ switch ($accion) {
         break;
 
     case 'eliminar':
-        requerirRolApi(['Administrador']);
+        requerirRolApi(['Administrador', 'Supervisor']);
         $id = (int)($_REQUEST['id'] ?? 0);
 
         if ($id <= 0) {

@@ -58,8 +58,10 @@ switch ($accion) {
             respuestaJson(false, null, "La marca '{$nombre}' ya se encuentra registrada en el catálogo.", 409);
         }
 
+        $activo = isset($_POST['activo']) ? ((int)$_POST['activo'] ? 1 : 0) : 1;
+
         try {
-            if (Marca::crear($conn, $nombre, 1)) {
+            if (Marca::crear($conn, $nombre, $activo)) {
                 respuestaJson(true, ['id' => (int)$conn->insert_id], "Marca '{$nombre}' creada exitosamente.");
             } else {
                 respuestaJson(false, null, 'Error al guardar la marca: ' . $conn->error, 500);
@@ -86,7 +88,11 @@ switch ($accion) {
 
         try {
             if (Marca::actualizar($conn, $id, $nombre)) {
-                respuestaJson(true, null, "Marca actualizada a '{$nombre}' exitosamente.");
+                if (isset($_POST['activo'])) {
+                    $activo = (int)$_POST['activo'] ? 1 : 0;
+                    Marca::cambiarEstado($conn, $id, $activo);
+                }
+                respuestaJson(true, null, "Marca '{$nombre}' actualizada exitosamente.");
             } else {
                 respuestaJson(false, null, 'Error al actualizar la marca: ' . $conn->error, 500);
             }
@@ -129,8 +135,10 @@ switch ($accion) {
             respuestaJson(false, null, "El modelo '{$nombre}' ya está registrado para esta marca.", 409);
         }
 
+        $activo = isset($_POST['activo']) ? ((int)$_POST['activo'] ? 1 : 0) : 1;
+
         try {
-            if (Modelo::crear($conn, $marcaId, $nombre, 1)) {
+            if (Modelo::crear($conn, $marcaId, $nombre, $activo)) {
                 respuestaJson(true, ['id' => (int)$conn->insert_id], "Modelo '{$nombre}' creado y asociado exitosamente.");
             } else {
                 respuestaJson(false, null, 'Error al guardar el modelo: ' . $conn->error, 500);
@@ -158,6 +166,10 @@ switch ($accion) {
 
         try {
             if (Modelo::actualizar($conn, $id, $marcaId, $nombre)) {
+                if (isset($_POST['activo'])) {
+                    $activo = (int)$_POST['activo'] ? 1 : 0;
+                    Modelo::cambiarEstado($conn, $id, $activo);
+                }
                 respuestaJson(true, null, "Modelo '{$nombre}' actualizado correctamente.");
             } else {
                 respuestaJson(false, null, 'Error al actualizar el modelo: ' . $conn->error, 500);

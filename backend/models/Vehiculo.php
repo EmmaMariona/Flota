@@ -121,7 +121,7 @@ class Vehiculo
         $modelo_id = !empty($datos['modelo_id']) ? (int)$datos['modelo_id'] : null;
         $anio = !empty($datos['anio']) ? (int)$datos['anio'] : null;
         $tonelaje = !empty($datos['tonelaje']) ? (float)$datos['tonelaje'] : 0.00;
-        $km = !empty($datos['kilometraje_actual']) ? (int)$datos['kilometraje_actual'] : 0;
+        $km = isset($datos['kilometraje_actual']) && $datos['kilometraje_actual'] !== '' ? (int)$datos['kilometraje_actual'] : 0;
         $fecha_adq = !empty($datos['fecha_adquisicion']) ? $datos['fecha_adquisicion'] : null;
 
         $stmt->bind_param(
@@ -177,7 +177,7 @@ class Vehiculo
         $modelo_id = !empty($datos['modelo_id']) ? (int)$datos['modelo_id'] : null;
         $anio = !empty($datos['anio']) ? (int)$datos['anio'] : null;
         $tonelaje = !empty($datos['tonelaje']) ? (float)$datos['tonelaje'] : 0.00;
-        $km = !empty($datos['kilometraje_actual']) ? (int)$datos['kilometraje_actual'] : 0;
+        $km = isset($datos['kilometraje_actual']) && $datos['kilometraje_actual'] !== '' ? (int)$datos['kilometraje_actual'] : 0;
         $fecha_adq = !empty($datos['fecha_adquisicion']) ? $datos['fecha_adquisicion'] : null;
 
         $stmt->bind_param(

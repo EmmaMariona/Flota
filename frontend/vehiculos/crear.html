@@ -121,10 +121,11 @@
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-4">
-                                        <label class="form-label">Kilometraje Actual</label>
-                                        <div class="input-group">
-                                            <input type="number" name="kilometraje_actual" class="form-control" value="0" min="0">
+                                        <label class="form-label">Kilometraje Actual <span class="text-danger">*</span></label>
+                                        <div class="input-group has-validation">
+                                            <input type="number" name="kilometraje_actual" id="input-kilometraje" class="form-control" required min="0" placeholder="Ej. 15000">
                                             <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">km</span>
+                                            <div id="km-feedback" class="invalid-feedback">El kilometraje actual es obligatorio y debe ser mayor o igual a 0.</div>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-4">
@@ -209,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             vinHelp.textContent = `Año ${anioVal} (< 1981): De 5 a 17 caracteres alfanuméricos.`;
             inputVin.placeholder = 'Ej. A12345B';
         } else {
-            vinHelp.textContent = 'Estándar ISO 3779 (1981+): 17 caracteres exactos (sin I, O, Q).';
+            vinHelp.textContent = ' 17 caracteres exactos (sin I, O, Q).';
             inputVin.placeholder = 'Ej. 1GBJC34E721234567';
         }
     }
@@ -382,8 +383,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const form = document.getElementById('formCrearVehiculo');
     const btnGuardar = document.getElementById('btnGuardar');
+    const inputKm = document.getElementById('input-kilometraje');
+    const kmFeedback = document.getElementById('km-feedback');
     const inputDocArchivo = document.getElementById('documento_archivo');
     App.vincularValidacionArchivo(inputDocArchivo);
+
+    if (inputKm) {
+        inputKm.addEventListener('input', () => {
+            const val = inputKm.value.trim();
+            if (val !== '' && !isNaN(val) && Number(val) >= 0) {
+                inputKm.classList.remove('is-invalid');
+                inputKm.classList.add('is-valid');
+            } else {
+                inputKm.classList.remove('is-valid');
+            }
+        });
+    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -394,6 +409,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             inputVin.focus();
             return;
         }
+
+        const kmVal = inputKm ? inputKm.value.trim() : '';
+        if (kmVal === '') {
+            App.showAlert('danger', 'El kilometraje actual es un campo obligatorio.');
+            inputKm.classList.add('is-invalid');
+            if (kmFeedback) kmFeedback.textContent = 'El kilometraje actual es un campo obligatorio.';
+            inputKm.focus();
+            return;
+        }
+        if (isNaN(kmVal) || Number(kmVal) < 0) {
+            App.showAlert('danger', 'El kilometraje actual debe ser un número entero mayor o igual a 0.');
+            inputKm.classList.add('is-invalid');
+            if (kmFeedback) kmFeedback.textContent = 'El kilometraje debe ser mayor o igual a 0.';
+            inputKm.focus();
+            return;
+        }
+        inputKm.classList.remove('is-invalid');
 
         if (inputDocArchivo && inputDocArchivo.files && inputDocArchivo.files[0]) {
             const valArchivo = App.validarArchivo(inputDocArchivo.files[0]);

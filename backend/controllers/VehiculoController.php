@@ -136,6 +136,15 @@ switch ($accion) {
             respuestaJson(false, null, 'La placa es un campo obligatorio.', 400);
         }
 
+        if (!isset($_POST['kilometraje_actual']) || trim((string)$_POST['kilometraje_actual']) === '') {
+            respuestaJson(false, null, 'El kilometraje actual es un campo obligatorio.', 400);
+        }
+
+        $kmActual = filter_var($_POST['kilometraje_actual'], FILTER_VALIDATE_INT);
+        if ($kmActual === false || $kmActual < 0) {
+            respuestaJson(false, null, 'El kilometraje actual debe ser un número entero mayor o igual a 0.', 400);
+        }
+
         $anio = !empty($_POST['anio']) ? (int)$_POST['anio'] : null;
         $vinRaw = strtoupper(trim($_POST['vin'] ?? ''));
 
@@ -168,7 +177,7 @@ switch ($accion) {
             'vin' => $valVin['vin'],
             'tonelaje' => !empty($_POST['tonelaje']) ? (float)$_POST['tonelaje'] : 0,
             'estado' => $_POST['estado'] ?? 'Activo',
-            'kilometraje_actual' => !empty($_POST['kilometraje_actual']) ? (int)$_POST['kilometraje_actual'] : 0,
+            'kilometraje_actual' => $kmActual,
             'fecha_adquisicion' => !empty($_POST['fecha_adquisicion']) ? $_POST['fecha_adquisicion'] : null,
             'observaciones' => trim($_POST['observaciones'] ?? '')
         ];
@@ -221,6 +230,15 @@ switch ($accion) {
             respuestaJson(false, null, $valVin['mensaje'], 400);
         }
 
+        if (!isset($_POST['kilometraje_actual']) || trim((string)$_POST['kilometraje_actual']) === '') {
+            respuestaJson(false, null, 'El kilometraje actual es un campo obligatorio.', 400);
+        }
+
+        $kmActual = filter_var($_POST['kilometraje_actual'], FILTER_VALIDATE_INT);
+        if ($kmActual === false || $kmActual < 0) {
+            respuestaJson(false, null, 'El kilometraje actual debe ser un número entero mayor o igual a 0.', 400);
+        }
+
         $mm = resolverMarcaYModelo($conn, $_POST);
 
         $datos = [
@@ -236,7 +254,7 @@ switch ($accion) {
             'vin' => $valVin['vin'],
             'tonelaje' => !empty($_POST['tonelaje']) ? (float)$_POST['tonelaje'] : 0,
             'estado' => $_POST['estado'] ?? 'Activo',
-            'kilometraje_actual' => !empty($_POST['kilometraje_actual']) ? (int)$_POST['kilometraje_actual'] : 0,
+            'kilometraje_actual' => $kmActual,
             'fecha_adquisicion' => !empty($_POST['fecha_adquisicion']) ? $_POST['fecha_adquisicion'] : null,
             'observaciones' => trim($_POST['observaciones'] ?? '')
         ];

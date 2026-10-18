@@ -28,6 +28,40 @@ $tipo_reporte = $_GET['tipo_reporte'] ?? 'vehiculos';
 $formato = $_GET['formato'] ?? 'print';
 $timestamp = date('Ymd_His');
 
+// Validación de rango de fechas para reportes con rango temporal
+if ($tipo_reporte === 'mantenimientos') {
+    $fechaDesde = trim($_GET['fecha_desde'] ?? '');
+    $fechaHasta = trim($_GET['fecha_hasta'] ?? '');
+    if (!empty($fechaDesde) && !empty($fechaHasta) && strtotime($fechaHasta) < strtotime($fechaDesde)) {
+        ?>
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <title>Error - Rango de Fechas Inválido</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-light d-flex align-items-center justify-content-center min-vh-100 p-4">
+            <div class="card shadow border-0 p-4 text-center" style="max-width: 460px;">
+                <div class="text-danger mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+                      <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m-1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
+                      <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                    </svg>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Rango de Fechas Inválido</h4>
+                <p class="text-secondary small mb-4">La fecha <strong>Hasta</strong> (<?= htmlspecialchars($fechaHasta) ?>) no puede ser menor que la fecha <strong>Desde</strong> (<?= htmlspecialchars($fechaDesde) ?>).</p>
+                <div>
+                    <button onclick="window.close(); if(!window.closed) history.back();" class="btn btn-secondary px-4">Regresar</button>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+}
+
 if ($formato === 'excel') {
     header("Content-Type: application/vnd.ms-excel; charset=utf-8");
     header("Content-Disposition: attachment; filename=reporte_{$tipo_reporte}_{$timestamp}.xls");

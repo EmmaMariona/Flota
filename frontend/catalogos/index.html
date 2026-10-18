@@ -75,12 +75,11 @@
                                                 <th>Marca</th>
                                                 <th class="text-center">Modelos</th>
                                                 <th class="text-center">Estado</th>
-                                                <th class="text-end">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tabla-marcas">
                                             <tr>
-                                                <td colspan="4" class="text-center text-secondary py-4">Cargando marcas...</td>
+                                                <td colspan="3" class="text-center text-secondary py-4">Cargando marcas...</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -126,12 +125,11 @@
                                                 <th>Marca</th>
                                                 <th>Modelo</th>
                                                 <th class="text-center">Estado</th>
-                                                <th class="text-end">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tabla-modelos">
                                             <tr>
-                                                <td colspan="4" class="text-center text-secondary py-4">Cargando modelos...</td>
+                                                <td colspan="3" class="text-center text-secondary py-4">Cargando modelos...</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -160,6 +158,20 @@
                     <div class="mb-3">
                         <label for="marca-nombre" class="form-label">Nombre de la Marca <span class="text-danger">*</span></label>
                         <input type="text" id="marca-nombre" name="nombre" class="form-control" required placeholder="Ej. Isuzu, Hino, Freightliner...">
+                    </div>
+                    <div class="mb-3" id="grupo-estado-marca">
+                        <label class="form-label small text-secondary">Estado de la Marca</label>
+                        <div class="p-3 rounded bg-body-tertiary border border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="fw-semibold text-light d-block" id="txt-marca-estado">
+                                    <span class="badge bg-success-subtle text-success me-1">Activa</span> Habilitada
+                                </span>
+                                <small class="text-secondary" id="desc-marca-estado">Disponible para asociar a vehículos y modelos.</small>
+                            </div>
+                            <div class="form-check form-switch m-0 fs-4">
+                                <input class="form-check-input" type="checkbox" role="switch" id="marca-activo" name="activo" value="1" checked style="cursor: pointer;">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-secondary border-opacity-25">
@@ -193,6 +205,20 @@
                     <div class="mb-3">
                         <label for="modelo-nombre" class="form-label">Nombre del Modelo <span class="text-danger">*</span></label>
                         <input type="text" id="modelo-nombre" name="nombre" class="form-control" required placeholder="Ej. NPR, QKR, Canter, Columbia...">
+                    </div>
+                    <div class="mb-3" id="grupo-estado-modelo">
+                        <label class="form-label small text-secondary">Estado del Modelo</label>
+                        <div class="p-3 rounded bg-body-tertiary border border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="fw-semibold text-light d-block" id="txt-modelo-estado">
+                                    <span class="badge bg-success-subtle text-success me-1">Activo</span> Habilitado
+                                </span>
+                                <small class="text-secondary" id="desc-modelo-estado">Disponible para asignación en el registro de unidades.</small>
+                            </div>
+                            <div class="form-check form-switch m-0 fs-4">
+                                <input class="form-check-input" type="checkbox" role="switch" id="modelo-activo" name="activo" value="1" checked style="cursor: pointer;">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-secondary border-opacity-25">
@@ -255,6 +281,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectModalMarca.value = valorModalActual;
     }
 
+    const inputMarcaActivo = document.getElementById('marca-activo');
+    const txtMarcaEstado = document.getElementById('txt-marca-estado');
+    const descMarcaEstado = document.getElementById('desc-marca-estado');
+
+    function actualizarEstadoUIMarca() {
+        const activo = inputMarcaActivo.checked;
+        if (activo) {
+            txtMarcaEstado.innerHTML = '<span class="badge bg-success-subtle text-success me-1">Activa</span> Habilitada';
+            descMarcaEstado.textContent = 'Disponible para asociar a vehículos y modelos.';
+        } else {
+            txtMarcaEstado.innerHTML = '<span class="badge bg-danger-subtle text-danger me-1">Inactiva</span> Deshabilitada';
+            descMarcaEstado.textContent = 'Oculta en la selección al registrar vehículos.';
+        }
+    }
+    inputMarcaActivo.addEventListener('change', actualizarEstadoUIMarca);
+
+    const inputModeloActivo = document.getElementById('modelo-activo');
+    const txtModeloEstado = document.getElementById('txt-modelo-estado');
+    const descModeloEstado = document.getElementById('desc-modelo-estado');
+
+    function actualizarEstadoUIModelo() {
+        const activo = inputModeloActivo.checked;
+        if (activo) {
+            txtModeloEstado.innerHTML = '<span class="badge bg-success-subtle text-success me-1">Activo</span> Habilitado';
+            descModeloEstado.textContent = 'Disponible para asignación en el registro de unidades.';
+        } else {
+            txtModeloEstado.innerHTML = '<span class="badge bg-danger-subtle text-danger me-1">Inactivo</span> Deshabilitado';
+            descModeloEstado.textContent = 'Oculto en la selección al registrar vehículos.';
+        }
+    }
+    inputModeloActivo.addEventListener('change', actualizarEstadoUIModelo);
+
     function renderMarcas() {
         const q = inputBuscarMarca.value.trim().toLowerCase();
         const filtradas = listaMarcas.filter(m => !q || m.nombre.toLowerCase().includes(q));
@@ -263,12 +321,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tbody = document.getElementById('tabla-marcas');
 
         if (filtradas.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-secondary py-4">No se encontraron marcas.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-secondary py-4">No se encontraron marcas.</td></tr>`;
             return;
         }
 
         tbody.innerHTML = filtradas.map(m => `
-            <tr>
+            <tr class="fila-marca align-middle" data-id="${m.id}" data-nombre="${App.escapeHtml(m.nombre)}" data-activo="${m.activo}" style="cursor: pointer;" title="Doble clic para editar marca">
                 <td>
                     <span class="fw-bold text-light">${App.escapeHtml(m.nombre)}</span>
                 </td>
@@ -282,52 +340,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ? '<span class="badge bg-success-subtle text-success">Activa</span>'
                         : '<span class="badge bg-danger-subtle text-danger">Inactiva</span>'}
                 </td>
-                <td class="text-end">
-                    <div class="d-inline-flex gap-1">
-                        <button type="button" class="btn btn-sm btn-outline-light py-0 px-2 btn-editar-marca" data-id="${m.id}" data-nombre="${App.escapeHtml(m.nombre)}" title="Editar marca">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm ${m.activo ? 'btn-outline-warning' : 'btn-outline-success'} py-0 px-2 btn-estado-marca" data-id="${m.id}" data-activo="${m.activo ? 0 : 1}" title="${m.activo ? 'Inactivar marca' : 'Activar marca'}">
-                            <i class="bi ${m.activo ? 'bi-toggle-on' : 'bi-toggle-off'}"></i>
-                        </button>
-                    </div>
-                </td>
             </tr>
         `).join('');
 
+        tbody.querySelectorAll('.fila-marca').forEach(fila => {
+            fila.addEventListener('dblclick', () => {
+                const id = fila.getAttribute('data-id');
+                const nombre = fila.getAttribute('data-nombre');
+                const activo = fila.getAttribute('data-activo');
+                abrirModalEditarMarca(id, nombre, activo);
+            });
+        });
+
         tbody.querySelectorAll('.btn-filtrar-marca').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 selectFiltroMarca.value = btn.getAttribute('data-id');
                 renderModelos();
             });
+            btn.addEventListener('dblclick', (e) => e.stopPropagation());
         });
+    }
 
-        tbody.querySelectorAll('.btn-editar-marca').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById('modalMarcaTitulo').textContent = 'Editar Marca';
-                document.getElementById('marca-id').value = btn.getAttribute('data-id');
-                document.getElementById('marca-nombre').value = btn.getAttribute('data-nombre');
-                modalMarca.show();
-            });
-        });
-
-        tbody.querySelectorAll('.btn-estado-marca').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                const nuevoEstado = btn.getAttribute('data-activo');
-                const res = await App.api('/flota/backend/controllers/CatalogoController.php?accion=estado_marca', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: Number(id), activo: Number(nuevoEstado) })
-                });
-                if (res && res.success) {
-                    App.showAlert('success', res.mensaje);
-                    await cargarCatalogo();
-                } else {
-                    App.showAlert('danger', res.mensaje || 'Error al cambiar estado de la marca.');
-                }
-            });
-        });
+    function abrirModalEditarMarca(id, nombre, activo) {
+        document.getElementById('modalMarcaTitulo').textContent = `Editar Marca #${id}`;
+        document.getElementById('marca-id').value = id;
+        document.getElementById('marca-nombre').value = nombre;
+        inputMarcaActivo.checked = (Number(activo) === 1);
+        actualizarEstadoUIMarca();
+        modalMarca.show();
     }
 
     function renderModelos() {
@@ -344,12 +385,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tbody = document.getElementById('tabla-modelos');
 
         if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-secondary py-4">No se encontraron modelos con los filtros seleccionados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-secondary py-4">No se encontraron modelos con los filtros seleccionados.</td></tr>`;
             return;
         }
 
         tbody.innerHTML = filtrados.map(mo => `
-            <tr>
+            <tr class="fila-modelo align-middle" data-id="${mo.id}" data-marca-id="${mo.marca_id}" data-nombre="${App.escapeHtml(mo.nombre)}" data-activo="${mo.activo}" style="cursor: pointer;" title="Doble clic para editar modelo">
                 <td>
                     <span class="badge bg-primary-subtle text-primary">${App.escapeHtml(mo.marca_nombre)}</span>
                 </td>
@@ -361,53 +402,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ? '<span class="badge bg-success-subtle text-success">Activo</span>'
                         : '<span class="badge bg-danger-subtle text-danger">Inactivo</span>'}
                 </td>
-                <td class="text-end">
-                    <div class="d-inline-flex gap-1">
-                        <button type="button" class="btn btn-sm btn-outline-light py-0 px-2 btn-editar-modelo"
-                            data-id="${mo.id}"
-                            data-marca-id="${mo.marca_id}"
-                            data-nombre="${App.escapeHtml(mo.nombre)}"
-                            title="Editar modelo">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm ${mo.activo ? 'btn-outline-warning' : 'btn-outline-success'} py-0 px-2 btn-estado-modelo"
-                            data-id="${mo.id}"
-                            data-activo="${mo.activo ? 0 : 1}"
-                            title="${mo.activo ? 'Inactivar modelo' : 'Activar modelo'}">
-                            <i class="bi ${mo.activo ? 'bi-toggle-on' : 'bi-toggle-off'}"></i>
-                        </button>
-                    </div>
-                </td>
             </tr>
         `).join('');
 
-        tbody.querySelectorAll('.btn-editar-modelo').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById('modalModeloTitulo').textContent = 'Editar Modelo';
-                document.getElementById('modelo-id').value = btn.getAttribute('data-id');
-                document.getElementById('modelo-marca-id').value = btn.getAttribute('data-marca-id');
-                document.getElementById('modelo-nombre').value = btn.getAttribute('data-nombre');
-                modalModelo.show();
+        tbody.querySelectorAll('.fila-modelo').forEach(fila => {
+            fila.addEventListener('dblclick', () => {
+                const id = fila.getAttribute('data-id');
+                const marcaId = fila.getAttribute('data-marca-id');
+                const nombre = fila.getAttribute('data-nombre');
+                const activo = fila.getAttribute('data-activo');
+                abrirModalEditarModelo(id, marcaId, nombre, activo);
             });
         });
+    }
 
-        tbody.querySelectorAll('.btn-estado-modelo').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                const nuevoEstado = btn.getAttribute('data-activo');
-                const res = await App.api('/flota/backend/controllers/CatalogoController.php?accion=estado_modelo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: Number(id), activo: Number(nuevoEstado) })
-                });
-                if (res && res.success) {
-                    App.showAlert('success', res.mensaje);
-                    await cargarCatalogo();
-                } else {
-                    App.showAlert('danger', res.mensaje || 'Error al cambiar estado del modelo.');
-                }
-            });
-        });
+    function abrirModalEditarModelo(id, marcaId, nombre, activo) {
+        document.getElementById('modalModeloTitulo').textContent = `Editar Modelo #${id}`;
+        document.getElementById('modelo-id').value = id;
+        document.getElementById('modelo-marca-id').value = marcaId;
+        document.getElementById('modelo-nombre').value = nombre;
+        inputModeloActivo.checked = (Number(activo) === 1);
+        actualizarEstadoUIModelo();
+        modalModelo.show();
     }
 
     // Eventos de búsqueda y filtrado
@@ -420,6 +436,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('modalMarcaTitulo').textContent = 'Crear Nueva Marca';
         document.getElementById('marca-id').value = '';
         document.getElementById('marca-nombre').value = '';
+        inputMarcaActivo.checked = true;
+        actualizarEstadoUIMarca();
         modalMarca.show();
     };
     document.getElementById('btnNuevaMarca').addEventListener('click', abrirModalNuevaMarca);
@@ -431,6 +449,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('modelo-id').value = '';
         document.getElementById('modelo-marca-id').value = selectFiltroMarca.value || '';
         document.getElementById('modelo-nombre').value = '';
+        inputModeloActivo.checked = true;
+        actualizarEstadoUIModelo();
         modalModelo.show();
     };
     document.getElementById('btnNuevoModelo').addEventListener('click', abrirModalNuevoModelo);
@@ -441,6 +461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const id = document.getElementById('marca-id').value;
         const nombre = document.getElementById('marca-nombre').value.trim();
+        const activo = inputMarcaActivo.checked ? 1 : 0;
         const accion = id ? 'actualizar_marca' : 'guardar_marca';
 
         const btn = document.getElementById('btnGuardarMarca');
@@ -449,7 +470,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const res = await App.api(`/flota/backend/controllers/CatalogoController.php?accion=${accion}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id ? Number(id) : undefined, nombre })
+            body: JSON.stringify({ id: id ? Number(id) : undefined, nombre, activo })
         });
 
         btn.disabled = false;
@@ -468,6 +489,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const id = document.getElementById('modelo-id').value;
         const marca_id = Number(document.getElementById('modelo-marca-id').value);
         const nombre = document.getElementById('modelo-nombre').value.trim();
+        const activo = inputModeloActivo.checked ? 1 : 0;
         const accion = id ? 'actualizar_modelo' : 'guardar_modelo';
 
         const btn = document.getElementById('btnGuardarModelo');
@@ -476,7 +498,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const res = await App.api(`/flota/backend/controllers/CatalogoController.php?accion=${accion}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id ? Number(id) : undefined, marca_id, nombre })
+            body: JSON.stringify({ id: id ? Number(id) : undefined, marca_id, nombre, activo })
         });
 
         btn.disabled = false;

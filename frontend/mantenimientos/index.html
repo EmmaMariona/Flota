@@ -122,11 +122,10 @@
                                     <th>Costo</th>
                                     <th>Estado</th>
                                     <th>Fecha Realizado</th>
-                                    <th class="text-end pe-3">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-mantenimientos">
-                                <tr><td colspan="9" class="text-center text-secondary py-4">Cargando mantenimientos...</td></tr>
+                                <tr><td colspan="8" class="text-center text-secondary py-4">Cargando mantenimientos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -199,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('kpi-pendientes-mant').textContent = `${pendientes} pendientes`;
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-secondary py-5">No se encontraron mantenimientos con los criterios seleccionados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-secondary py-5">No se encontraron mantenimientos con los criterios seleccionados.</td></tr>`;
                 return;
             }
 
@@ -211,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 else if (m.estado === 'Cancelado') badgeEstado = 'bg-danger-subtle text-danger';
 
                 return `
-                <tr>
+                <tr class="fila-mantenimiento align-middle" data-id="${m.id}" style="cursor: pointer;" title="Doble clic para editar mantenimiento">
                     <td><span class="text-secondary small"><i class="bi bi-calendar-event me-1"></i>${App.formatDate(m.fecha_programada)}</span></td>
                     <td>
                         <a href="/flota/frontend/vehiculos/detalle.html?id=${m.vehiculo_id}" class="fw-bold text-info text-decoration-none">
@@ -229,7 +228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <small class="text-secondary">${App.escapeHtml(m.proveedor || 'Taller no especificado')}</small>
                         ${m.archivo_ruta ? `
                         <div class="mt-1">
-                            <a href="/flota/${m.archivo_ruta}" target="_blank" class="badge bg-primary-subtle text-primary text-decoration-none">
+                            <a href="/flota/${m.archivo_ruta}" target="_blank" class="badge bg-primary-subtle text-primary text-decoration-none link-adjunto">
                                 <i class="bi bi-paperclip me-1"></i>${App.escapeHtml(m.archivo_nombre_original || 'Ver adjunto')}
                             </a>
                         </div>
@@ -239,64 +238,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td class="fw-bold text-success">${App.formatMoney(m.costo)}</td>
                     <td><span class="badge ${badgeEstado}">${App.escapeHtml(m.estado)}</span></td>
                     <td>${m.fecha_realizada ? App.formatDate(m.fecha_realizada) : '<span class="text-secondary small">Pendiente</span>'}</td>
-                    <td class="text-end pe-3">
-                        <div class="btn-group btn-group-sm">
-                            ${m.archivo_ruta ? `
-                            <a href="/flota/${m.archivo_ruta}" target="_blank" class="btn btn-outline-info" title="Ver Archivo Adjunto">
-                                <i class="bi bi-paperclip"></i>
-                            </a>
-                            ` : ''}
-                            <a href="/flota/frontend/mantenimientos/imprimir.html?id=${m.id}" target="_blank" class="btn btn-outline-light" title="Imprimir Orden">
-                                <i class="bi bi-printer"></i>
-                            </a>
-                            ${puedeEditar && m.estado !== 'Completado' ? `
-                            <button class="btn btn-outline-success btn-completar" data-id="${m.id}" title="Marcar como Completado">
-                                <i class="bi bi-check2"></i>
-                            </button>
-                            ` : ''}
-                            ${puedeEditar ? `
-                            <a href="/flota/frontend/mantenimientos/editar.html?id=${m.id}" class="btn btn-outline-warning" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            ` : ''}
-                            ${esAdmin ? `
-                            <button class="btn btn-outline-danger btn-eliminar" data-id="${m.id}" title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            ` : ''}
-                        </div>
-                    </td>
                 </tr>
                 `;
             }).join('');
 
-            tbody.querySelectorAll('.btn-completar').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const id = btn.getAttribute('data-id');
-                    if (confirm('¿Deseas marcar este servicio como Completado?')) {
-                        const r = await App.api(`/flota/backend/controllers/MantenimientoController.php?accion=completar&id=${id}`);
-                        if (r && r.success) {
-                            App.showAlert('success', 'Mantenimiento marcado como Completado.');
-                            cargarMantenimientos();
-                        } else {
-                            App.showAlert('danger', r.mensaje || 'Error al completar mantenimiento.');
-                        }
+            // Ingresar al detalle/edición del mantenimiento al hacer doble clic en la fila
+            tbody.querySelectorAll('.fila-mantenimiento').forEach(fila => {
+                fila.addEventListener('dblclick', () => {
+                    const id = fila.getAttribute('data-id');
+                    if (id) {
+                        window.location.href = `/flota/frontend/mantenimientos/editar.html?id=${id}`;
                     }
                 });
-            });
-
-            tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const id = btn.getAttribute('data-id');
-                    if (confirm('¿Estás seguro de que deseas eliminar este mantenimiento?')) {
-                        const r = await App.api(`/flota/backend/controllers/MantenimientoController.php?accion=eliminar&id=${id}`);
-                        if (r && r.success) {
-                            App.showAlert('success', 'Mantenimiento eliminado.');
-                            cargarMantenimientos();
-                        } else {
-                            App.showAlert('danger', r.mensaje || 'Error al eliminar.');
-                        }
-                    }
+                fila.querySelectorAll('a').forEach(a => {
+                    a.addEventListener('click', e => e.stopPropagation());
+                    a.addEventListener('dblclick', e => e.stopPropagation());
                 });
             });
         }
