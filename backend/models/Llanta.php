@@ -14,12 +14,12 @@ class Llanta
                 v.marca AS marca_vehiculo,
                 v.modelo AS modelo_vehiculo,
                 v.kilometraje_actual,
-                p.nombre AS posicion,
+                IFNULL(p.nombre, 'Sin posición') AS posicion,
                 IFNULL(s.nombre, 'Sin sucursal') AS sucursal,
                 GREATEST(0, IFNULL(v.kilometraje_actual, 0) - IFNULL(ll.km_instalacion, 0)) AS km_recorridos
             FROM llantas ll
             INNER JOIN vehiculos v ON ll.vehiculo_id = v.id
-            INNER JOIN posiciones_llantas p ON ll.posicion_id = p.id
+            LEFT JOIN posiciones_llantas p ON ll.posicion_id = p.id
             LEFT JOIN sucursales s ON v.sucursal_id = s.id
             WHERE 1=1
         ";
@@ -48,7 +48,7 @@ class Llanta
             $types .= "sss";
         }
 
-        $sql .= " ORDER BY v.placa ASC, p.id ASC";
+        $sql .= " ORDER BY v.placa ASC, IFNULL(p.id, 99) ASC, ll.id ASC";
 
         if (!empty($params)) {
             $stmt = $conn->prepare($sql);
@@ -101,10 +101,10 @@ class Llanta
             SELECT 
                 ll.*,
                 v.placa,
-                p.nombre AS posicion
+                IFNULL(p.nombre, 'Sin posición') AS posicion
             FROM llantas ll
             INNER JOIN vehiculos v ON ll.vehiculo_id = v.id
-            INNER JOIN posiciones_llantas p ON ll.posicion_id = p.id
+            LEFT JOIN posiciones_llantas p ON ll.posicion_id = p.id
             WHERE ll.id = ?
         ";
         $stmt = $conn->prepare($sql);
@@ -180,11 +180,11 @@ class Llanta
                 ll.*,
                 v.placa,
                 v.marca AS marca_vehiculo,
-                p.nombre AS posicion,
+                IFNULL(p.nombre, 'Sin posición') AS posicion,
                 (v.kilometraje_actual - ll.km_instalacion) AS km_recorridos
             FROM llantas ll
             INNER JOIN vehiculos v ON ll.vehiculo_id = v.id
-            INNER JOIN posiciones_llantas p ON ll.posicion_id = p.id
+            LEFT JOIN posiciones_llantas p ON ll.posicion_id = p.id
             WHERE ll.estado = 'Activa' AND (v.kilometraje_actual - ll.km_instalacion) >= ?
             ORDER BY km_recorridos DESC
             LIMIT 5

@@ -205,7 +205,7 @@ switch ($accion) {
 
                 respuestaJson(true, ['id' => $nuevoVehiculoId], "Vehículo con placa {$placa} registrado exitosamente.{$docMsg}");
             } else {
-                respuestaJson(false, null, 'Error al guardar el vehículo: ' . $conn->error, 500);
+                respuestaJson(false, null, 'Error al guardar el vehículo, placa existente: ' . $conn->error, 500);
             }
         } catch (Exception $e) {
             respuestaJson(false, null, "Error: posiblemente la placa {$placa} ya está registrada.", 409);

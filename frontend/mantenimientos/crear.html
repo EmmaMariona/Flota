@@ -138,7 +138,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/flota/frontend/assets/js/app.js?v=20260927"></script>
+<script src="/flota/frontend/assets/js/app.js?v=20261106"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
@@ -154,32 +154,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         App.api('/flota/backend/controllers/SucursalController.php?accion=listar')
     ]);
 
+    const selectV = document.getElementById('vehiculo_id');
+    const selectS = document.getElementById('sucursal_id');
+
+    let vehiculoSucursalId = '';
+    let vehiculoSucursalNombre = '';
+
     if (resSuc && resSuc.success && resSuc.data) {
-        document.getElementById('sucursal_id').innerHTML = '<option value="">-- Selecciona la sucursal --</option>' + 
+        selectS.innerHTML = '<option value="">-- Selecciona la sucursal --</option>' + 
             resSuc.data.map(s => `<option value="${s.id}">${App.escapeHtml(s.nombre)}</option>`).join('');
     }
 
     if (resVeh && resVeh.success && resVeh.data && resVeh.data.vehiculos) {
-        const selectV = document.getElementById('vehiculo_id');
         selectV.innerHTML = '<option value="">-- Selecciona el camión / vehículo --</option>' + 
             resVeh.data.vehiculos.map(v => `
-                <option value="${v.id}" data-sucursal="${v.sucursal_id || ''}" data-km="${v.kilometraje_actual || 0}" ${preVehiculoId == v.id ? 'selected' : ''}>
+                <option value="${v.id}" data-sucursal="${v.sucursal_id || ''}" data-sucursal-nombre="${App.escapeHtml(v.sucursal || '')}" data-km="${v.kilometraje_actual || 0}" ${preVehiculoId == v.id ? 'selected' : ''}>
                     ${App.escapeHtml(v.placa)} | ${App.escapeHtml(v.marca || '')} ${App.escapeHtml(v.modelo || '')} (${App.escapeHtml(v.sucursal || 'Sin sucursal')})
                 </option>
             `).join('');
 
         selectV.addEventListener('change', () => {
             const opt = selectV.options[selectV.selectedIndex];
-            if (opt) {
-                const sucId = opt.getAttribute('data-sucursal');
+            if (opt && opt.value) {
+                vehiculoSucursalId = opt.getAttribute('data-sucursal') || '';
+                vehiculoSucursalNombre = opt.getAttribute('data-sucursal-nombre') || '';
                 const km = opt.getAttribute('data-km');
-                if (sucId) document.getElementById('sucursal_id').value = sucId;
+                if (vehiculoSucursalId) {
+                    selectS.value = vehiculoSucursalId;
+                }
                 if (km !== null && km !== undefined && km !== '') {
                     const inputKm = document.getElementById('kilometraje_servicio');
                     inputKm.value = km;
                     inputKm.classList.remove('is-invalid');
                     inputKm.classList.add('is-valid');
                 }
+            } else {
+                vehiculoSucursalId = '';
+                vehiculoSucursalNombre = '';
             }
         });
 
@@ -187,6 +198,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             selectV.dispatchEvent(new Event('change'));
         }
     }
+
+    // Advertencia al cambiar manualmente la sucursal si no coincide con la del vehículo
+    selectS.addEventListener('change', async () => {
+        const nuevaSucursalId = selectS.value;
+
+        // Solo validamos si hay un vehículo seleccionado que tiene sucursal asignada
+        if (vehiculoSucursalId && nuevaSucursalId !== vehiculoSucursalId) {
+            const detalleTexto = vehiculoSucursalNombre 
+                ? `El vehículo seleccionado pertenece a la sucursal: <strong>${App.escapeHtml(vehiculoSucursalNombre)}</strong>.`
+                : 'El vehículo seleccionado pertenece a otra sucursal.';
+
+            const continuar = await App.confirmModal({
+                title: 'Advertencia',
+                message: 'Sucursal incorrecta, ¿desea continuar?',
+                detail: detalleTexto,
+                btnConfirmText: 'Sí',
+                btnCancelText: 'No',
+                confirmClass: 'btn-warning text-dark',
+                cancelClass: 'btn-outline-secondary',
+                icon: 'bi-exclamation-triangle-fill text-warning'
+            });
+
+            if (!continuar) {
+                // Si el usuario presiona "No", vuelve a seleccionar la sucursal asignada al vehículo
+                selectS.value = vehiculoSucursalId;
+            }
+        }
+    });
 
     const form = document.getElementById('formCrearMantenimiento');
     const btnGuardar = document.getElementById('btnGuardar');

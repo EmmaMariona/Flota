@@ -301,6 +301,105 @@ const App = {
         }
     },
 
+    /**
+     * Diálogo modal interactivo con estilos de Bootstrap y Dark Theme del sistema.
+     * Devuelve una Promesa con true si confirma ('Sí') o false si cancela ('No').
+     */
+    confirmModal({
+        title = 'Advertencia',
+        message = 'Sucursal incorrecta, ¿desea continuar?',
+        detail = '',
+        btnConfirmText = 'Sí',
+        btnCancelText = 'No',
+        confirmClass = 'btn-warning text-dark',
+        cancelClass = 'btn-outline-secondary',
+        icon = 'bi-exclamation-triangle-fill text-warning'
+    } = {}) {
+        return new Promise((resolve) => {
+            if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+                const promptText = detail ? `${message}\n(${detail.replace(/<[^>]+>/g, '')})` : message;
+                return resolve(window.confirm(promptText));
+            }
+
+            let modalEl = document.getElementById('app-confirm-modal');
+            if (!modalEl) {
+                modalEl = document.createElement('div');
+                modalEl.id = 'app-confirm-modal';
+                modalEl.className = 'modal fade';
+                modalEl.setAttribute('tabindex', '-1');
+                modalEl.setAttribute('aria-hidden', 'true');
+                modalEl.setAttribute('data-bs-backdrop', 'static');
+                modalEl.setAttribute('data-bs-keyboard', 'false');
+                modalEl.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content bg-dark border-secondary border-opacity-50 text-light shadow">
+                            <div class="modal-header border-secondary border-opacity-25">
+                                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="app-confirm-title"></h5>
+                                <button type="button" class="btn-close" id="app-confirm-close" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body py-4">
+                                <p class="mb-2 fs-6 fw-semibold text-light" id="app-confirm-message"></p>
+                                <div class="text-secondary small mb-0" id="app-confirm-detail"></div>
+                            </div>
+                            <div class="modal-footer border-secondary border-opacity-25 d-flex justify-content-end gap-2">
+                                <button type="button" class="btn px-3" id="app-confirm-btn-no"></button>
+                                <button type="button" class="btn px-4 fw-semibold" id="app-confirm-btn-si"></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modalEl);
+            }
+
+            const titleEl = document.getElementById('app-confirm-title');
+            const msgEl = document.getElementById('app-confirm-message');
+            const detailEl = document.getElementById('app-confirm-detail');
+            const btnNo = document.getElementById('app-confirm-btn-no');
+            const btnSi = document.getElementById('app-confirm-btn-si');
+            const btnClose = document.getElementById('app-confirm-close');
+
+            titleEl.innerHTML = `<i class="bi ${icon}"></i> <span>${this.escapeHtml(title)}</span>`;
+            msgEl.textContent = message;
+            if (detail) {
+                detailEl.innerHTML = detail;
+                detailEl.style.display = 'block';
+            } else {
+                detailEl.style.display = 'none';
+            }
+
+            btnNo.textContent = btnCancelText;
+            btnNo.className = `btn ${cancelClass} px-3`;
+
+            btnSi.textContent = btnConfirmText;
+            btnSi.className = `btn ${confirmClass} px-4 fw-semibold`;
+
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            let resolved = false;
+            const finalize = (result) => {
+                if (resolved) return;
+                resolved = true;
+                btnSi.removeEventListener('click', handleSi);
+                btnNo.removeEventListener('click', handleNo);
+                btnClose.removeEventListener('click', handleNo);
+                modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+                bsModal.hide();
+                resolve(result);
+            };
+
+            const handleSi = () => finalize(true);
+            const handleNo = () => finalize(false);
+            const handleHidden = () => finalize(false);
+
+            btnSi.addEventListener('click', handleSi);
+            btnNo.addEventListener('click', handleNo);
+            btnClose.addEventListener('click', handleNo);
+            modalEl.addEventListener('hidden.bs.modal', handleHidden);
+
+            bsModal.show();
+        });
+    },
+
     escapeHtml(text) {
         if (!text) return '';
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
